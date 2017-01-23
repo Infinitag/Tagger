@@ -16,18 +16,18 @@ const int displayResetPin = 4;
 const int displayDcPin = 5;
 const int displayCsPin = 6;
 const int lifePin = 13;
-
-SensorDHCPServer SensorServer(DHCP_MASTER_ADDRESS, 30);
-Infinitag_Core infinitagCore;
-IRsend irsend;
-
-
 bool alive = true;
 unsigned long timeOfDeath = 0;
 
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(4, muzzleLedPin, NEO_GRBW + NEO_KHZ800);
+// Infinitag Inits
+SensorDHCPServer SensorServer(DHCP_MASTER_ADDRESS, 30);
+Infinitag_Core infinitagCore;
 sh1106_spi display = create_display(displayResetPin, displayDcPin, displayCsPin);
 Framebuffer framebuffer;
+
+// Vendor Inits
+IRsend irsend;
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(4, muzzleLedPin, NEO_GRBW + NEO_KHZ800);
 
 void setup() {
   Serial.begin(57600);
