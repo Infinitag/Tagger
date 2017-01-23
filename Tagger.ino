@@ -2,8 +2,12 @@
 #include <sensor_dhcp_server.h>
 #include <Infinitag_SH1106.h>
 #include <Infinitag_GFX.h>
+#include <Infinitag_Core.h>
+#include <IRremote.h>
 
 SensorDHCPServer SensorServer(DHCP_MASTER_ADDRESS, 30);
+Infinitag_Core infinitagCore;
+IRsend irsend;
 
 const int buttonPin = 2;
 const int lifePin = 13;
@@ -54,9 +58,14 @@ void loop() {
     digitalWrite(lifePin, HIGH);
     if(buttonState == HIGH)
     {
-      alive = false;
-      timeOfDeath = millis();
-      colorWipe(strip.Color(255,0,0));
+      
+      unsigned long shootValue = infinitagCore.ir_encode(false, 0, 2, 4, 1, 100);
+      irsend.sendRC5(shootValue, 24);
+      colorWipe(strip.Color(0,255,0,0));
+      delay(100);
+      colorWipe(strip.Color(0,0,0,0));
+      //alive = false;
+      //timeOfDeath = millis();
     }
   }
   else
