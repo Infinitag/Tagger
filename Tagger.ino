@@ -1,7 +1,7 @@
 #include <Adafruit_NeoPixel.h>
 #include <sensor_dhcp_server.h>
-#include <sh1106_spi.h>
-#include <InfinitagGFX.h>
+#include <Infinitag_SH1106.h>
+#include <Infinitag_GFX.h>
 
 SensorDHCPServer SensorServer(DHCP_MASTER_ADDRESS, 30);
 
