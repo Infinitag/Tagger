@@ -1,28 +1,32 @@
-#include <Adafruit_NeoPixel.h>
+// Infinitag Libs
 #include <sensor_dhcp_server.h>
 #include <Infinitag_SH1106.h>
 #include <Infinitag_GFX.h>
 #include <Infinitag_Core.h>
 #include <IRremote.h>
 
+// Vendor Libs
+#include <Adafruit_NeoPixel.h>
+
+// Settings
+const int fireBtnPin = 2;
+int fireBtnState = 0;
+const int muzzleLedPin = 8;
+const int displayResetPin = 4;
+const int displayDcPin = 5;
+const int displayCsPin = 6;
+const int lifePin = 13;
+
 SensorDHCPServer SensorServer(DHCP_MASTER_ADDRESS, 30);
 Infinitag_Core infinitagCore;
 IRsend irsend;
 
-const int buttonPin = 2;
-const int lifePin = 13;
-const int shotLedDataPin = 8;
-const int resetPin = 4;
-const int dcPin = 5;
-const int csPin = 6;
-
-int buttonState = 0;
 
 bool alive = true;
 unsigned long timeOfDeath = 0;
 
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(4, shotLedDataPin, NEO_GRBW + NEO_KHZ800);
-sh1106_spi display = create_display(resetPin, dcPin, csPin);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(4, muzzleLedPin, NEO_GRBW + NEO_KHZ800);
+sh1106_spi display = create_display(displayResetPin, displayDcPin, displayCsPin);
 Framebuffer framebuffer;
 
 void setup() {
@@ -34,9 +38,9 @@ void setup() {
   Wire.onRequest(requestEvent);
   Serial.println("booting..");
 
-  pinMode(buttonPin, INPUT);
+  pinMode(fireBtnPin, INPUT);
   pinMode(lifePin, OUTPUT);
-  pinMode(shotLedDataPin, OUTPUT);
+  pinMode(muzzleLedPin, OUTPUT);
 
   Serial.println("booting...");
   SPI.begin();
@@ -50,13 +54,13 @@ void setup() {
 
 void loop() {
   framebuffer.clear(BLACK);
-  buttonState = digitalRead(buttonPin);
+  fireBtnState = digitalRead(fireBtnPin);
 
   if(alive)
   {
     framebuffer.displayText("Alive", 50, 24, WHITE);
     digitalWrite(lifePin, HIGH);
-    if(buttonState == HIGH)
+    if(fireBtnState == HIGH)
     {
       
       unsigned long shootValue = infinitagCore.ir_encode(false, 0, 2, 4, 1, 100);
