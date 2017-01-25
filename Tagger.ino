@@ -3,9 +3,9 @@
 #include <Infinitag_SH1106.h>
 #include <Infinitag_GFX.h>
 #include <Infinitag_Core.h>
-#include <IRremote.h>
 
 // Vendor Libs
+#include <IRremote.h>
 #include <Adafruit_NeoPixel.h>
 
 // Settings
