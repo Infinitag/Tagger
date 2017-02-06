@@ -8,6 +8,8 @@
 #include <IRremote.h>
 #include <Adafruit_NeoPixel.h>
 
+#define TEAM 2
+  
 // Settings
 const int fireBtnPin = 2;
 int fireBtnState = 0;
@@ -18,6 +20,7 @@ const int displayCsPin = 6;
 bool alive = true;
 unsigned long timeOfDeath = 0;
 
+unsigned int intensity = 64;
 // Infinitag Inits
 SensorDHCPServer SensorServer(DHCP_MASTER_ADDRESS, 30);
 Infinitag_Core infinitagCore;
@@ -56,19 +59,20 @@ void loop() {
   framebuffer.clear(BLACK);
   fireBtnState = digitalRead(fireBtnPin);
 
+
   if (alive) {
     framebuffer.displayText("Alive", 50, 24, WHITE);
-    colorWipe(strip.Color(0,255,0,0));
+    colorWipe(strip.Color(0,intensity,0,0));
     
     if (fireBtnState == HIGH) {
       
-      unsigned long shootValue = infinitagCore.ir_encode(false, 0, 2, 4, 1, 100);
+      unsigned long shootValue = infinitagCore.ir_encode(false, 0, TEAM, 4, 1, 100);
       irsend.sendRC5(shootValue, 24);
-      colorWipe(strip.Color(0,0,255,0));
+      colorWipe(strip.Color(0,0,intensity,0));
       delay(100);
-      colorWipe(strip.Color(0,255,0,0));
-      //alive = false;
-      //timeOfDeath = millis();
+      colorWipe(strip.Color(0,intensity,0,0));
+      alive = false;
+      timeOfDeath = millis();
     }
   } else {
     unsigned long currentTime = millis();
