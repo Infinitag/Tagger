@@ -8,11 +8,13 @@
 #include <IRremote.h>
 #include <Adafruit_NeoPixel.h>
 
-#define TEAM 2
-  
-// Settings
+// Button Settings
 const int fireBtnPin = 2;
 int fireBtnState = 0;
+const int specialBtnPin = 3;
+int specialBtnState = 0;
+
+// Settings
 const int muzzleLedPin = 8;
 const int displayResetPin = 4;
 const int displayDcPin = 5;
@@ -30,6 +32,10 @@ Framebuffer framebuffer;
 // Vendor Inits
 IRsend irsend;
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(4, muzzleLedPin, NEO_GRBW + NEO_KHZ800);
+
+// Player
+byte playerTeamId = 1;
+byte playerId = 1;
 
 void setup() {
   Serial.begin(57600);
@@ -53,29 +59,45 @@ void setup() {
   colorWipe(strip.Color(0,0,0,0));
   
   Serial.println("boot completed");
+
+  displayPlayerInfo();
+  updateSensorConfig();
 }
 
 void loop() {
-  framebuffer.clear(BLACK);
   fireBtnState = digitalRead(fireBtnPin);
+  specialBtnState = digitalRead(specialBtnPin);
 
+  // Demo Player Setup
+  if (specialBtnState == HIGH) {
+      playerId++;
+      if (playerId > 2) {
+        playerId = 1;
+        playerTeamId++;
+      }
+      if (playerTeamId > 2) {
+        playerId = 1;
+        playerTeamId = 1;
+      }
+      displayPlayerInfo();
+      updateSensorConfig();
+      delay(150);
+  }
 
   if (alive) {
-    framebuffer.displayText("Alive", 50, 24, WHITE);
     colorWipe(strip.Color(0,intensity,0,0));
     
     if (fireBtnState == HIGH) {
-      
-      unsigned long shootValue = infinitagCore.ir_encode(false, 0, TEAM, 4, 1, 100);
+      unsigned long shootValue = infinitagCore.ir_encode(false, 0, playerTeamId, playerId, 1, 100);
       irsend.sendRC5(shootValue, 24);
       colorWipe(strip.Color(0,0,intensity,0));
       delay(100);
       colorWipe(strip.Color(0,intensity,0,0));
-      alive = false;
-      timeOfDeath = millis();
+      //alive = false;
+      //timeOfDeath = millis();
     }
   } else {
-    unsigned long currentTime = millis();
+    /*unsigned long currentTime = millis();
     unsigned long ti = currentTime - timeOfDeath;
     char number[100];
     String(ti/1000).toCharArray(number, 100);
@@ -85,10 +107,9 @@ void loop() {
     }
     if (ti > 20000) { //20 seconds
       alive = true; 
-    }
+    }*/
   }
   SensorServer.scanIfNecessary();
-  display_buffer(&display, framebuffer.getData());
   delay(10);
 }
 
@@ -104,3 +125,24 @@ void colorWipe(uint32_t c) {
   }
   strip.show();
 }
+
+void displayPlayerInfo () {
+  framebuffer.clear(BLACK);
+  String displayPlayerText = "Team ";
+  displayPlayerText += playerTeamId;
+  displayPlayerText += " / Player ";
+  displayPlayerText += playerId;
+  char charBuf[50];
+  displayPlayerText.toCharArray(charBuf, 50);
+  framebuffer.displayText(charBuf, 0, 12, WHITE);
+  framebuffer.displayText("Alive", 50, 24, WHITE);
+  display_buffer(&display, framebuffer.getData());
+}
+
+void updateSensorConfig () {
+  Wire.beginTransmission(0x22);
+  Wire.write(playerTeamId);
+  Wire.write(playerId);
+  Wire.endTransmission();
+}
+
