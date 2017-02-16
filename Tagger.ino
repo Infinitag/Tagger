@@ -41,9 +41,10 @@ void setup() {
   Serial.begin(57600);
   
   Serial.println("booting Server...");
-  SensorServer.initialize();
+  //SensorServer.initialize();
   
   Serial.println("booting Events...");
+  Wire.begin();
   Wire.onRequest(requestEvent);
 
   Serial.println("booting Pins...");
@@ -109,7 +110,7 @@ void loop() {
       alive = true; 
     }*/
   }
-  SensorServer.scanIfNecessary();
+  //SensorServer.scanIfNecessary();
   delay(10);
 }
 
@@ -144,5 +145,10 @@ void updateSensorConfig () {
   Wire.write(playerTeamId);
   Wire.write(playerId);
   Wire.endTransmission();
+  Wire.beginTransmission(0x24);
+  Wire.write(playerTeamId);
+  Wire.write(playerId);
+  Wire.endTransmission();
 }
+
 
