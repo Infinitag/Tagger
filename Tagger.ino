@@ -151,14 +151,14 @@ void updateSensorConfig () {
   Wire.endTransmission();
 }
 
-void sendCmd (byte data[], unsigned int byteLength) {
+void sendCmd(byte data[], unsigned int byteLength) {
   // Ziel muss noch bestimmt werden
   Wire.beginTransmission(0x22);
   Wire.write(data, byteLength);
   Wire.endTransmission();
 }
 
-void sendCmdSetGameId (unsigned int gameId) {
+void sendCmdSetGameId(unsigned int gameId) {
   byte data[2] = {
     0x01, 
     gameId
@@ -166,7 +166,7 @@ void sendCmdSetGameId (unsigned int gameId) {
   sendCmd(data, 2);
 }
 
-void sendCmdSetPlayerId (unsigned int playerId) {
+void sendCmdSetPlayerId(unsigned int playerId) {
   byte data[2] = {
     0x02, 
     playerId
@@ -174,7 +174,7 @@ void sendCmdSetPlayerId (unsigned int playerId) {
   sendCmd(data, 2);
 }
 
-void sendCmdSetSensorId (unsigned int sensorId) {
+void sendCmdSetSensorId(unsigned int sensorId) {
   byte data[2] = {
     0x03, 
     sensorId
@@ -182,7 +182,7 @@ void sendCmdSetSensorId (unsigned int sensorId) {
   sendCmd(data, 2);
 }
 
-void sendCmdSetAnimation (unsigned int animationId, unsigned int duration, unsigned int colorR, unsigned int colorG, unsigned int colorB, unsigned int colorW, unsigned int repeat) {
+void sendCmdSetAnimation(unsigned int animationId, unsigned int duration, unsigned int colorR, unsigned int colorG, unsigned int colorB, unsigned int colorW, unsigned int repeat) {
   byte data[9] = {
     0x04, 
     animationId, 
@@ -198,7 +198,7 @@ void sendCmdSetAnimation (unsigned int animationId, unsigned int duration, unsig
 }
 
 
-void sendCmdPing (unsigned int senderId) {
+void sendCmdPing(unsigned int senderId) {
   byte data[2] = {
     0x05, 
     senderId
