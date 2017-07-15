@@ -9,10 +9,26 @@
 #include <Adafruit_NeoPixel.h>
 
 // Button Settings
-const int fireBtnPin = 2;
-int fireBtnState = 0;
-const int specialBtnPin = 3;
+const int rightBtnPin = 34;
+int rightBtnState = 0;
+const int leftBtnPin = 35;
+int leftBtnState = 0;
+const int downBtnPin = 36;
+int downBtnState = 0;
+const int upBtnPin = 37;
+int upBtnState = 0;
+const int specialBtnPin = 44;
 int specialBtnState = 0;
+const int infoBtnPin = 45;
+int infoBtnState = 0;
+const int reloadBtnPin = 46;
+int reloadBtnState = 0;
+const int fireBtnPin = 47;
+int fireBtnState = 0;
+const int enterBtnPin = 48;
+int enterBtnState = 0;
+const int resetBtnPin = 49;
+int resetBtnState = 0;
 
 // Settings
 const int muzzleLedPin = 8;
@@ -22,7 +38,7 @@ const int displayCsPin = 6;
 bool alive = true;
 unsigned long timeOfDeath = 0;
 
-unsigned int intensity = 64;
+unsigned int intensity = 255;
 // Infinitag Inits
 SensorDHCPServer SensorServer(DHCP_MASTER_ADDRESS, 30);
 Infinitag_Core infinitagCore;
@@ -67,32 +83,15 @@ void setup() {
 
 void loop() {
   fireBtnState = digitalRead(fireBtnPin);
+  Serial.println(fireBtnState);
   specialBtnState = digitalRead(specialBtnPin);
-
-  // Demo Player Setup
-  if (specialBtnState == HIGH) {
-      playerId++;
-      if (playerId > 2) {
-        playerId = 1;
-        playerTeamId++;
-      }
-      if (playerTeamId > 2) {
-        playerId = 1;
-        playerTeamId = 1;
-      }
-      displayPlayerInfo();
-      updateSensorConfig();
-      delay(150);
-  }
+  colorWipe(strip.Color(0,0,intensity,0));
 
   if (alive) {
-    colorWipe(strip.Color(0,intensity,0,0));
     
     if (fireBtnState == HIGH) {
       unsigned long shootValue = infinitagCore.ir_encode(false, 0, playerTeamId, playerId, 1, 100);
       irsend.sendRC5(shootValue, 24);
-      colorWipe(strip.Color(0,0,intensity,0));
-      delay(100);
       colorWipe(strip.Color(0,intensity,0,0));
       //alive = false;
       //timeOfDeath = millis();
@@ -111,7 +110,7 @@ void loop() {
     }*/
   }
   //SensorServer.scanIfNecessary();
-  delay(10);
+  delay(100);
 }
 
 void requestEvent() {
