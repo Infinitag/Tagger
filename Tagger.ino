@@ -82,13 +82,11 @@ void setup() {
 }
 
 void loop() {
-  fireBtnState = digitalRead(fireBtnPin);
-  Serial.println(fireBtnState);
-  specialBtnState = digitalRead(specialBtnPin);
   colorWipe(strip.Color(0,0,intensity,0));
+  getButtonStates();
+  demoFunktions();
 
   if (alive) {
-    
     if (fireBtnState == HIGH) {
       unsigned long shootValue = infinitagCore.ir_encode(false, 0, playerTeamId, playerId, 1, 100);
       irsend.sendRC5(shootValue, 24);
@@ -111,6 +109,38 @@ void loop() {
   }
   //SensorServer.scanIfNecessary();
   delay(100);
+}
+
+void getButtonStates() {
+  rightBtnState = digitalRead(rightBtnPin);
+  leftBtnState = digitalRead(leftBtnPin);
+  downBtnState = digitalRead(downBtnPin);
+  upBtnState = digitalRead(upBtnPin);
+  specialBtnState = digitalRead(specialBtnPin);
+  infoBtnState = digitalRead(infoBtnPin);
+  reloadBtnState = digitalRead(reloadBtnPin);
+  fireBtnState = digitalRead(fireBtnPin);
+  enterBtnState = digitalRead(enterBtnPin);
+  resetBtnState = digitalRead(resetBtnPin);
+}
+
+void demoFunktions() {
+  if (upBtnState == HIGH) {
+    if (playerId == 1) {
+      playerId = 2;
+    } else {
+      playerId = 1;
+      if (playerTeamId == 1) {
+        playerTeamId = 2;
+      } else {
+        playerTeamId = 1;
+      }
+    }
+    displayPlayerInfo();
+    updateSensorConfig();
+    delay(100);
+  }
+
 }
 
 void requestEvent() {
