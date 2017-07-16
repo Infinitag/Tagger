@@ -57,7 +57,7 @@ void setup() {
   Serial.begin(57600);
   
   Serial.println("booting Server...");
-  //SensorServer.initialize();
+  SensorServer.initialize();
   
   Serial.println("booting Events...");
   Wire.begin();
