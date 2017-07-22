@@ -197,6 +197,7 @@ void loopInGame() {
   
   calculateTime();
   displayTime();
+  demoFunktions();
   
   if (alive) {
     if (fireBtnState == HIGH) {
