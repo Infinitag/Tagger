@@ -40,7 +40,7 @@ unsigned long timeOfDeath = 0;
 unsigned int currentScreen = 0; // 0 = home / 1 = inGame / 2 = gameStats
 
 // Timings
-unsigned long gameTime = 15000;
+unsigned long gameTime = 600000;
 unsigned long gameTimeStart;
 unsigned long gameTimeEnd;
 unsigned long gameTimeDiff;
