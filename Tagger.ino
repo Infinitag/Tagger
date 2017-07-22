@@ -37,6 +37,20 @@ const int displayDcPin = 5;
 const int displayCsPin = 6;
 bool alive = true;
 unsigned long timeOfDeath = 0;
+unsigned int currentScreen = 0; // 0 = home / 1 = inGame / 2 = gameStats
+
+// Timings
+unsigned long gameTime = 15000;
+unsigned long gameTimeStart;
+unsigned long gameTimeEnd;
+unsigned long gameTimeDiff;
+int gameTimeDiffMinutes;
+int gameTimeDiffSeconds;
+unsigned long gameTimeToEnd;
+
+// Stats
+unsigned int statsShots;
+unsigned int statsDeath;
 
 unsigned int intensity = 255;
 // Infinitag Inits
@@ -77,20 +91,119 @@ void setup() {
   
   Serial.println("boot completed");
 
-  displayPlayerInfo();
   updateSensorConfig();
 }
 
 void loop() {
-  colorWipe(strip.Color(0,0,intensity,0));
   getButtonStates();
-  demoFunktions();
 
+  switch(currentScreen) {
+    case 2:
+      loopGameStats();
+      break;
+    case 1:
+      loopInGame();
+      break;
+    case 0:
+    default:
+      loopHomescreen();
+      break;
+  }
+  
+  //SensorServer.scanIfNecessary();
+}
+
+void loopHomescreen() {
+  framebuffer.clear(BLACK);
+  
+  String text = "Homescreen";
+  char textBuf[50];
+  text.toCharArray(textBuf, 50);
+  framebuffer.displayText(textBuf, 0, 0, WHITE);
+  framebuffer.drawHorizontalLine(0, 14, 128, WHITE);
+  
+  text = "Press [Enter] to play";
+  text.toCharArray(textBuf, 50);
+  framebuffer.displayText(textBuf, 0, 30, WHITE);
+
+  display_buffer(&display, framebuffer.getData());
+  
+  if (enterBtnState == HIGH) {
+    startGame();
+    return;
+  }
+  
+  delay(100);
+}
+
+void loopGameStats() {
+  framebuffer.clear(BLACK);
+  
+  String text = "Game-Stats";
+  char textBuf[50];
+  text.toCharArray(textBuf, 50);
+  framebuffer.displayText(textBuf, 0, 0, WHITE);
+  framebuffer.drawHorizontalLine(0, 14, 128, WHITE);
+
+  text = "Shots: ";
+  text += statsShots;
+  text.toCharArray(textBuf, 50);
+  framebuffer.displayText(textBuf, 0, 17, WHITE);
+
+  text = "Death: ";
+  text += statsDeath;
+  text.toCharArray(textBuf, 50);
+  framebuffer.displayText(textBuf, 0, 31, WHITE);
+  
+  text = "Press [Enter] to restart";
+  text.toCharArray(textBuf, 50);
+  framebuffer.displayText(textBuf, 0, 49, WHITE);
+  framebuffer.drawHorizontalLine(0, 48, 128, WHITE);
+
+  display_buffer(&display, framebuffer.getData());
+  
+  if (enterBtnState == HIGH) {
+    startGame();
+    return;
+  }
+  
+  delay(100);
+}
+
+void startGame() {
+  currentScreen = 1;
+  gameTimeStart = millis();
+  gameTimeEnd = gameTimeStart + gameTime;
+
+  statsShots = 0;
+  statsDeath = 0;
+  
+  displayBasisInfo();
+  calculateTime();
+  displayTime();
+}
+
+void endGame() {
+  currentScreen = 2;
+}
+
+void loopInGame() {
+  if (gameTimeToEnd <= 0) {
+    endGame();
+    return;
+  }
+  
+  colorWipe(strip.Color(0,0,intensity,0));
+  
+  calculateTime();
+  displayTime();
+  
   if (alive) {
     if (fireBtnState == HIGH) {
-      unsigned long shootValue = infinitagCore.ir_encode(false, 0, playerTeamId, playerId, 1, 100);
-      irsend.sendRC5(shootValue, 24);
+      unsigned long shotValue = infinitagCore.ir_encode(false, 0, playerTeamId, playerId, 1, 100);
+      irsend.sendRC5(shotValue, 24);
       colorWipe(strip.Color(0,intensity,0,0));
+      statsShots++;
       //alive = false;
       //timeOfDeath = millis();
     }
@@ -107,7 +220,6 @@ void loop() {
       alive = true; 
     }*/
   }
-  //SensorServer.scanIfNecessary();
   delay(100);
 }
 
@@ -136,7 +248,7 @@ void demoFunktions() {
         playerTeamId = 1;
       }
     }
-    displayPlayerInfo();
+    displayBasisInfo();
     updateSensorConfig();
     delay(100);
   }
@@ -156,20 +268,90 @@ void colorWipe(uint32_t c) {
   strip.show();
 }
 
-void displayPlayerInfo () {
+void displayBasisInfo() {
   framebuffer.clear(BLACK);
-  String displayPlayerText = "Team ";
-  displayPlayerText += playerTeamId;
-  displayPlayerText += " / Player ";
+
+  // Infinitag Smybol
+  // Kann noch nicht richtig mit der aktuellen Lib abgebildet werden
+  framebuffer.drawLine(25, 2, 48, 2, WHITE);
+  framebuffer.drawLine(25, 49, 48, 49, WHITE);
+  framebuffer.drawLine(10, 24, 10, 27, WHITE);
+  
+  framebuffer.drawLine(78, 2, 101, 2, WHITE);
+  framebuffer.drawLine(78, 49, 101, 49, WHITE);
+  framebuffer.drawLine(116, 24, 116, 27, WHITE);
+
+  // Spieler Angabe
+  // Schrift muss noch kleiner werden, geht mit der aktuellen lib nicht
+  String displayPlayerText = "P";
   displayPlayerText += playerId;
-  char charBuf[50];
-  displayPlayerText.toCharArray(charBuf, 50);
-  framebuffer.displayText(charBuf, 0, 12, WHITE);
-  framebuffer.displayText("Alive", 50, 24, WHITE);
+  char charPlayerBuf[10];
+  displayPlayerText.toCharArray(charPlayerBuf, 10);
+  framebuffer.displayText(charPlayerBuf, 0, 0, WHITE);
+
+  // Team Angabe
+  // Schrift muss noch kleiner werden, geht mit der aktuellen lib nicht
+  String displayTeamText = "T";
+  displayTeamText += playerTeamId;
+  char charTeamBuf[10];
+  displayTeamText.toCharArray(charTeamBuf, 10);
+  framebuffer.displayText(charTeamBuf, 112, 0, WHITE);
+
+  display_buffer(&display, framebuffer.getData());
+
+  displayTime();
+}
+
+void calculateTime() {
+  gameTimeDiff = millis() - gameTimeStart;
+  if (gameTimeDiff <= gameTime) {
+    gameTimeToEnd = gameTime - gameTimeDiff;
+    if (gameTimeToEnd > 0) {
+      gameTimeDiffMinutes = (gameTimeToEnd / 60000);
+      gameTimeDiffSeconds = (gameTimeToEnd - (gameTimeDiffMinutes * 60000)) / 1000;
+      return;
+    }
+  }
+  gameTimeToEnd = 0;
+  gameTimeDiffMinutes = 0;
+  gameTimeDiffSeconds = 0;
+}
+
+void displayTime() {
+  
+  // Bar
+  int barMaxWidth = 94;
+  framebuffer.drawHorizontalLine(0, 60, barMaxWidth, WHITE);
+  framebuffer.drawLine(barMaxWidth, 60, barMaxWidth, 64, WHITE);
+
+  framebuffer.drawRectFilled(0, 61, barMaxWidth, 4, BLACK);
+  int barSize = barMaxWidth - (gameTimeDiff * barMaxWidth / gameTime);
+  if (barSize < 0) {
+    barSize = 0;
+  }
+  framebuffer.drawRectFilled(0, 61, barSize, 4, WHITE);
+
+  // Time
+  // Schrift muss noch kleiner werden, geht mit der aktuellen lib nicht
+  framebuffer.drawRectFilled(97, 52, 31, 12, BLACK);
+  String timeText = "";
+  if (gameTimeDiffMinutes < 10) {
+    timeText += "0";
+  }
+  timeText += gameTimeDiffMinutes;
+  timeText += ":";
+  if (gameTimeDiffSeconds < 10) {
+    timeText += "0";
+  }
+  timeText += gameTimeDiffSeconds;
+  char timeBuf[6];
+  timeText.toCharArray(timeBuf, 6);
+  framebuffer.displayText(timeBuf, 97, 52, WHITE);
+  
   display_buffer(&display, framebuffer.getData());
 }
 
-void updateSensorConfig () {
+void updateSensorConfig() {
   Wire.beginTransmission(0x22);
   Wire.write(playerTeamId);
   Wire.write(playerId);
