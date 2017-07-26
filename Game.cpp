@@ -21,7 +21,7 @@ Game::Game(Framebuffer& fb, sh1106_spi& dp, IRsend& ir, Infinitag_Core& core, Ad
   infinitagCore = core;
   strip = ledStrip;
   
-  timePlayTime = 60000; //600000;
+  timePlayTime = 60000;//0;
 }
 
 void Game::loop() {
@@ -49,8 +49,6 @@ void Game::loop() {
 }
 
 void Game::start() {
-  Serial.println("START!2");
-  
   timeStart = millis();
   timeEnd = timeStart + timePlayTime;
   
@@ -252,3 +250,28 @@ void Game::loopStats() {
   
   delay(100);
 }
+
+void Game::receiveShot(byte *data, int byteCounter) {
+  Serial.println("receiveShot");
+  switch (data[0]) {
+    case 0x06:
+      if (byteCounter == 4) {
+        infinitagCore.ir_decode(data);
+        if (infinitagCore.ir_recv_cmd == 1) {
+          setDamage(infinitagCore.ir_recv_cmd_value);
+        }
+      }
+      break;
+      
+    default:
+      Serial.println("No Command found");
+      break;
+  }
+}
+
+void Game::setDamage(int damage) {
+  Serial.println("Damage");
+  Serial.println(damage);
+  statsDeath++;
+}
+

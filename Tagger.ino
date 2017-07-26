@@ -62,8 +62,8 @@ void setup() {
   SensorServer.initialize();
   
   Serial.println("booting Events...");
-  Wire.begin();
   Wire.onRequest(requestEvent);
+  Wire.onReceive(receiveEvent);
 
   Serial.println("booting Pins...");
   pinMode(fireBtnPin, INPUT);
@@ -137,6 +137,25 @@ void loopHomescreen() {
   }
   
   delay(100);
+}
+
+void receiveEvent() {
+  Serial.println("receiveEvent");
+  int byteCounter = 0;
+  byte data[4] = {
+    B0,
+    B0,
+    B0,
+    B0,
+  };
+  
+  while (Wire.available()) {
+    data[byteCounter] = Wire.read();
+    Serial.println(data[byteCounter]);
+    byteCounter++;
+  }
+  
+  game.receiveShot(data, byteCounter);
 }
 
 void requestEvent() {
