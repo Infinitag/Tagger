@@ -141,9 +141,21 @@ void loopHomescreen() {
 
 void receiveEvent() {
   Serial.println("receiveEvent");
+  int byteCounter = 0;
+  byte data[4] = {
+    B0,
+    B0,
+    B0,
+    B0,
+  };
+  
   while (Wire.available()) {
-    Serial.println(Wire.read());
+    data[byteCounter] = Wire.read();
+    Serial.println(data[byteCounter]);
+    byteCounter++;
   }
+  
+  game.receiveShot(data, byteCounter);
 }
 
 void requestEvent() {

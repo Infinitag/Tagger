@@ -41,6 +41,9 @@
       void initButtons(int rP, int lP, int dP, int uP, int sP, int iP, int rlP, int fP, int eP, int rsP);
       void getButtonStates();
       void loopStats();
+
+      void receiveShot(byte *data, int byteCounter);
+      void setDamage(int damage);
       
     private:
       // Basic
