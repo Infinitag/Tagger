@@ -13,10 +13,8 @@
 #include "Game.h"
 
 
-Game::Game(Framebuffer& fb, sh1106_spi& dp, IRsend& ir, Infinitag_Core& core, Adafruit_NeoPixel& ledStrip)
+Game::Game(IRsend& ir, Infinitag_Core& core, Adafruit_NeoPixel& ledStrip)
 {
-  framebuffer = fb;
-  display = dp;
   irsend = ir;
   infinitagCore = core;
   strip = ledStrip;
@@ -35,7 +33,6 @@ void Game::loop() {
   colorWipe(strip.Color(0, 0, ledIntensity, 0));
   
   calculateTime();
-  displayTime();
   demoFunktions();
   
   if (fireBtnState == HIGH) {
@@ -43,6 +40,7 @@ void Game::loop() {
     irsend.sendRC5(shotValue, 24);
     colorWipe(strip.Color(0, ledIntensity, 0, 0));
     statsShots++;
+    playerAmmo--;
   }
   
   delay(100);
@@ -54,10 +52,10 @@ void Game::start() {
   
   statsShots = 0;
   statsDeath = 0;
+  playerAmmo = 120;
+  playerHealth = 100;
   
-  displayBasisInfo();
   calculateTime();
-  displayTime();
 }
 
 void Game::end() {
@@ -83,39 +81,6 @@ void Game::calculateTime() {
 }
 
 
-void Game::displayTime() {
-  // Bar
-  int barMaxWidth = 94;
-  framebuffer.drawHorizontalLine(0, 60, barMaxWidth, WHITE);
-  framebuffer.drawLine(barMaxWidth, 60, barMaxWidth, 64, WHITE);
-
-  framebuffer.drawRectFilled(0, 61, barMaxWidth, 4, BLACK);
-  int barSize = barMaxWidth - (timeDiff * barMaxWidth / timePlayTime);
-  if (barSize < 0) {
-    barSize = 0;
-  }
-  framebuffer.drawRectFilled(0, 61, barSize, 4, WHITE);
-
-  // Time
-  // Schrift muss noch kleiner werden, geht mit der aktuellen lib nicht
-  framebuffer.drawRectFilled(97, 52, 31, 12, BLACK);
-  String timeText = "";
-  if (timeDiffMinutes < 10) {
-    timeText += "0";
-  }
-  timeText += timeDiffMinutes;
-  timeText += ":";
-  if (timeDiffSeconds < 10) {
-    timeText += "0";
-  }
-  timeText += timeDiffSeconds;
-  char timeBuf[6];
-  timeText.toCharArray(timeBuf, 6);
-  framebuffer.displayText(timeBuf, 97, 52, WHITE);
-
-  display_buffer(&display, framebuffer.getData());
-}
-
 void Game::colorWipe(uint32_t c) {
   for (uint16_t i=0; i<strip.numPixels(); i++) {
     strip.setPixelColor(i, c);
@@ -135,44 +100,9 @@ void Game::demoFunktions() {
         playerTeamId = 1;
       }
     }
-    displayBasisInfo();
     updateSensorConfig();
     delay(100);
   }
-}
-
-void Game::displayBasisInfo() {
-  framebuffer.clear(BLACK);
-
-  // Infinitag Smybol
-  // Kann noch nicht richtig mit der aktuellen Lib abgebildet werden
-  framebuffer.drawLine(25, 2, 48, 2, WHITE);
-  framebuffer.drawLine(25, 49, 48, 49, WHITE);
-  framebuffer.drawLine(10, 24, 10, 27, WHITE);
-  
-  framebuffer.drawLine(78, 2, 101, 2, WHITE);
-  framebuffer.drawLine(78, 49, 101, 49, WHITE);
-  framebuffer.drawLine(116, 24, 116, 27, WHITE);
-
-  // Spieler Angabe
-  // Schrift muss noch kleiner werden, geht mit der aktuellen lib nicht
-  String displayPlayerText = "P";
-  displayPlayerText += playerId;
-  char charPlayerBuf[10];
-  displayPlayerText.toCharArray(charPlayerBuf, 10);
-  framebuffer.displayText(charPlayerBuf, 0, 0, WHITE);
-
-  // Team Angabe
-  // Schrift muss noch kleiner werden, geht mit der aktuellen lib nicht
-  String displayTeamText = "T";
-  displayTeamText += playerTeamId;
-  char charTeamBuf[10];
-  displayTeamText.toCharArray(charTeamBuf, 10);
-  framebuffer.displayText(charTeamBuf, 112, 0, WHITE);
-
-  display_buffer(&display, framebuffer.getData());
-
-  displayTime();
 }
 
 void Game::updateSensorConfig() {
@@ -223,7 +153,7 @@ void Game::getButtonStates() {
 }
 
 void Game::loopStats() {
-  framebuffer.clear(BLACK);
+  /*framebuffer.clear(BLACK);
   
   String text = "Game-Stats";
   char textBuf[50];
@@ -246,7 +176,7 @@ void Game::loopStats() {
   framebuffer.displayText(textBuf, 0, 49, WHITE);
   framebuffer.drawHorizontalLine(0, 48, 128, WHITE);
 
-  display_buffer(&display, framebuffer.getData());
+  display_buffer(&display, framebuffer.getData());*/
   
   delay(100);
 }

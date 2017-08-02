@@ -6,8 +6,6 @@
   All files are published under Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
   License: https://creativecommons.org/licenses/by-nc-sa/4.0/
 */
-#include <Infinitag_SH1106.h>
-#include <Infinitag_GFX.h>
 #include <Infinitag_Core.h>
 
 // Vendor
@@ -23,7 +21,7 @@
   class Game
   {
     public:
-      Game(Framebuffer& fb, sh1106_spi& dp, IRsend& ir, Infinitag_Core& core, Adafruit_NeoPixel& ledStrip);
+      Game(IRsend& ir, Infinitag_Core& core, Adafruit_NeoPixel& ledStrip);
       
       void start();
       void end();
@@ -44,10 +42,6 @@
 
       void receiveShot(byte *data, int byteCounter);
       void setDamage(int damage);
-      
-    private:
-      // Basic
-      Infinitag_Core infinitagCore;
     
       // Time
       unsigned long timeStart;
@@ -65,10 +59,12 @@
       // Player
       byte playerTeamId = 1;
       byte playerId = 1;
+      int playerAmmo;
+      int playerHealth;
       
-      // Display
-      Framebuffer framebuffer;
-      sh1106_spi display;
+    private:
+      // Basic
+      Infinitag_Core infinitagCore;
       
       // IR
       IRsend irsend;

@@ -1,9 +1,10 @@
 // Infinitag Libs
+#include <SPI.h>
+#include <Wire.h>
 #include <sensor_dhcp_server.h>
-#include <Infinitag_SH1106.h>
-#include <Infinitag_GFX.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SH1106.h>
 #include <Infinitag_Core.h>
-#include "Game.h"
 
 // Vendor Libs
 #include <IRremote.h>
@@ -33,9 +34,9 @@ int resetBtnState = 0;
 
 // Settings
 const int muzzleLedPin = 8;
-const int displayResetPin = 4;
-const int displayDcPin = 5;
-const int displayCsPin = 6;
+const int8_t displayResetPin = 4;
+const int8_t displayDcPin = 5;
+const int8_t displayCsPin = 6;
 bool alive = true;
 unsigned long timeOfDeath = 0;
 unsigned int currentScreen = 0; // 0 = home / 1 = inGame / 2 = gameStats
@@ -46,14 +47,15 @@ unsigned int intensity = 255;
 // Infinitag Inits
 SensorDHCPServer SensorServer(DHCP_MASTER_ADDRESS, 30);
 Infinitag_Core infinitagCore;
-sh1106_spi display = create_display(displayResetPin, displayDcPin, displayCsPin);
-Framebuffer framebuffer;
+
+Adafruit_SH1106 display(51, 52, displayDcPin, displayResetPin, displayCsPin);
 
 // Vendor Inits
 IRsend irsend;
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(4, muzzleLedPin, NEO_GRBW + NEO_KHZ800);
 
-Game game(framebuffer, display, irsend, infinitagCore, strip);
+#include "Game.h"
+Game game(irsend, infinitagCore, strip);
 
 void setup() {
   Serial.begin(57600);
@@ -70,8 +72,11 @@ void setup() {
   pinMode(muzzleLedPin, OUTPUT);
 
   Serial.println("booting Display...");
-  SPI.begin();
-  initialize_display(&display);
+  display.begin(SH1106_SWITCHCAPVCC);
+  display.display();
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
   
   Serial.println("booting LEDs...");
   strip.begin();
@@ -98,6 +103,7 @@ void loop() {
     case 1:
       if (game.isRunning()) {
         game.loop();
+        displayGameData();
       } else {
         currentScreen = 2;
       }
@@ -113,23 +119,27 @@ void loop() {
 
 void startGame() {
   game.start();
+  displayGameBasisInfo();
   currentScreen = 1;
 }
 
 void loopHomescreen() {
-  framebuffer.clear(BLACK);
+  display.clearDisplay();
+  display.setTextSize(1);
   
   String text = "Homescreen";
   char textBuf[50];
   text.toCharArray(textBuf, 50);
-  framebuffer.displayText(textBuf, 0, 0, WHITE);
-  framebuffer.drawHorizontalLine(0, 14, 128, WHITE);
+  display.setCursor(0, 0);
+  display.println(textBuf);
+  display.writeFastHLine(0, 14, 128, WHITE);
   
   text = "Press [Enter] to play";
   text.toCharArray(textBuf, 50);
-  framebuffer.displayText(textBuf, 0, 30, WHITE);
+  display.setCursor(0, 30);
+  display.println(textBuf);
 
-  display_buffer(&display, framebuffer.getData());
+  display.display();
   
   if (enterBtnState == HIGH) {
     startGame();
@@ -238,5 +248,112 @@ void sendCmdPing(unsigned int senderId) {
     senderId
   };
   sendCmd(data, 2);
+}
+
+void displayGameTime() {
+  display.setTextSize(1);
+  
+  // Bar
+  int barMaxWidth = 94;
+  
+  display.writeFastHLine(0, 60, barMaxWidth, WHITE);
+  display.writeLine(barMaxWidth, 60, barMaxWidth, 64, WHITE);
+
+  display.writeFillRect(0, 61, barMaxWidth, 4, BLACK);
+  int barSize = barMaxWidth - (game.timeDiff * barMaxWidth / game.timePlayTime);
+  if (barSize < 0) {
+    barSize = 0;
+  }
+  display.writeFillRect(0, 61, barSize, 4, WHITE);
+
+  // Time
+  // Schrift muss noch kleiner werden, geht mit der aktuellen lib nicht
+  display.writeFillRect(97, 52, 31, 12, BLACK);
+  String timeText = "";
+  if (game.timeDiffMinutes < 10) {
+    timeText += "0";
+  }
+  timeText += game.timeDiffMinutes;
+  timeText += ":";
+  if (game.timeDiffSeconds < 10) {
+    timeText += "0";
+  }
+  timeText += game.timeDiffSeconds;
+  char timeBuf[6];
+  timeText.toCharArray(timeBuf, 6);
+  display.setCursor(97, 57);
+  display.println(timeBuf);
+
+  display.display();
+}
+
+void displayGameData() {
+  display.setTextSize(2);
+  int posX3Left = 19;
+  int posX3Right = 73;
+  int posX2Left = 26;
+  int posX2Right = 79;
+  int posX1Left = 32;
+  int posX1Right = 85;
+
+  // links 16
+  display.writeFillRect(posX3Left, 16, 38, 18, BLACK);
+  display.setCursor((game.playerAmmo < 10) ? posX1Left : ((game.playerAmmo < 100) ? posX2Left : posX3Left), 16);
+  display.println(game.playerAmmo);
+
+  // rechts
+  display.writeFillRect(posX3Right, 16, 38, 18, BLACK);
+  display.setCursor((game.playerHealth < 10) ? posX1Right : ((game.playerHealth < 100) ? posX2Right : posX3Right), 16);
+  display.println(game.playerHealth);
+  
+  display.display();
+  
+  displayGameTime();
+}
+
+
+void displayGameBasisInfo() {
+  display.clearDisplay();
+  display.setTextSize(1);
+
+  // Infinitag Smybol
+  // Kann noch nicht richtig mit der aktuellen Lib abgebildet werden
+  display.writeLine(25, 2, 48, 2, WHITE);
+  display.writeLine(25, 49, 48, 49, WHITE);
+  display.writeLine(10, 24, 10, 27, WHITE);
+  display.writeLine(25, 2, 10, 24, WHITE);
+  display.writeLine(10, 27, 25, 49, WHITE);
+  display.writeLine(48, 2, 59, 19, WHITE);
+  
+  display.writeLine(48, 49, 78, 2, WHITE);
+  
+  display.writeLine(78, 2, 101, 2, WHITE);
+  display.writeLine(78, 49, 101, 49, WHITE);
+  display.writeLine(116, 24, 116, 27, WHITE);
+  display.writeLine(101, 2, 116, 24, WHITE);
+  display.writeLine(116, 27, 101, 49, WHITE);
+  display.writeLine(78, 49, 67, 32, WHITE);
+
+  // Spieler Angabe
+  // Schrift muss noch kleiner werden, geht mit der aktuellen lib nicht
+  String displayPlayerText = "P";
+  displayPlayerText += game.playerId;
+  char charPlayerBuf[10];
+  displayPlayerText.toCharArray(charPlayerBuf, 10);
+  display.setCursor(0, 0);
+  display.println(charPlayerBuf);
+
+  // Team Angabe
+  // Schrift muss noch kleiner werden, geht mit der aktuellen lib nicht
+  String displayTeamText = "T";
+  displayTeamText += game.playerTeamId;
+  char charTeamBuf[10];
+  displayTeamText.toCharArray(charTeamBuf, 10);
+  display.setCursor(112, 0);
+  display.println(charTeamBuf);
+
+  display.display();
+
+  displayGameData();
 }
 
