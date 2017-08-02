@@ -29,21 +29,25 @@ void Game::loop() {
     end();
     return;
   }
-
+  
   colorWipe(strip.Color(0, 0, ledIntensity, 0));
   
   calculateTime();
   demoFunktions();
+
+  if (playerAlive) {
+    if (fireBtnState == HIGH) {
+      shot();
+    }
   
-  if (fireBtnState == HIGH) {
-    unsigned long shotValue = infinitagCore.ir_encode(false, 0, playerTeamId, playerId, 1, 100);
-    irsend.sendRC5(shotValue, 24);
-    colorWipe(strip.Color(0, ledIntensity, 0, 0));
-    statsShots++;
-    playerAmmo--;
+    if (reloadBtnState == HIGH) {
+      reload();
+    }
+  } else {
+    if (timeNextRespawn <= millis()) {
+      respawn();
+    }
   }
-  
-  delay(100);
 }
 
 void Game::start() {
@@ -52,13 +56,56 @@ void Game::start() {
   
   statsShots = 0;
   statsDeath = 0;
-  playerAmmo = 120;
-  playerHealth = 100;
-  
+  playerAmmoMax = 30;
+  playerHealthMax = 100;
+  timePlayerRespawn = 3000;
+
+  // Tagger
+  taggerDamage = 25;
+  timeShotFrequence = 20;
+  timeNextShot = millis();
+
+  reload();
+  respawn();
   calculateTime();
 }
 
 void Game::end() {
+}
+
+
+void Game::shot() {
+  if (playerAmmo <= 0) {
+    return;
+  }
+
+  if (timeNextShot > millis()) {
+    return;
+  }
+  
+  // IR signal
+  unsigned long shotValue = infinitagCore.ir_encode(false, 0, playerTeamId, playerId, 1, taggerDamage);
+  irsend.sendRC5(shotValue, 24);
+
+  // Color
+  colorWipe(strip.Color(0, ledIntensity, 0, 0));
+
+  // Calcs
+  playerAmmo--;
+  timeNextShot = millis() + timeShotFrequence;
+
+  // Stats
+  statsShots++;
+}
+
+void Game::respawn() {
+  playerAlive = true;
+  playerHealth = playerHealthMax;
+}
+
+void Game::reload() {
+  playerAmmo = playerAmmoMax;
+  
 }
 
 bool Game::isRunning() {
@@ -110,10 +157,7 @@ void Game::updateSensorConfig() {
   Wire.write(playerTeamId);
   Wire.write(playerId);
   Wire.endTransmission();
-  Wire.beginTransmission(0x24);
-  Wire.write(playerTeamId);
-  Wire.write(playerId);
-  Wire.endTransmission();
+  reloadDisplay = true;
 }
 
 void Game::initButtons(int rP, int lP, int dP, int uP, int sP, int iP, int rlP, int fP, int eP, int rsP) {
@@ -152,35 +196,6 @@ void Game::getButtonStates() {
   resetBtnState = digitalRead(resetBtnPin);
 }
 
-void Game::loopStats() {
-  /*framebuffer.clear(BLACK);
-  
-  String text = "Game-Stats";
-  char textBuf[50];
-  text.toCharArray(textBuf, 50);
-  framebuffer.displayText(textBuf, 0, 0, WHITE);
-  framebuffer.drawHorizontalLine(0, 14, 128, WHITE);
-
-  text = "Shots: ";
-  text += statsShots;
-  text.toCharArray(textBuf, 50);
-  framebuffer.displayText(textBuf, 0, 17, WHITE);
-
-  text = "Death: ";
-  text += statsDeath;
-  text.toCharArray(textBuf, 50);
-  framebuffer.displayText(textBuf, 0, 31, WHITE);
-  
-  text = "Press [Enter] to restart";
-  text.toCharArray(textBuf, 50);
-  framebuffer.displayText(textBuf, 0, 49, WHITE);
-  framebuffer.drawHorizontalLine(0, 48, 128, WHITE);
-
-  display_buffer(&display, framebuffer.getData());*/
-  
-  delay(100);
-}
-
 void Game::receiveShot(byte *data, int byteCounter) {
   Serial.println("receiveShot");
   switch (data[0]) {
@@ -200,8 +215,17 @@ void Game::receiveShot(byte *data, int byteCounter) {
 }
 
 void Game::setDamage(int damage) {
-  Serial.println("Damage");
-  Serial.println(damage);
-  statsDeath++;
+  if (! playerAlive) {
+    return;
+  }
+  
+  playerHealth -= damage;
+
+  if (playerHealth <= 0) {
+    playerHealth = 0;
+    playerAlive = false;
+    timeNextRespawn = millis() + timePlayerRespawn;
+    statsDeath++;
+  }
 }
 

@@ -98,12 +98,16 @@ void loop() {
         startGame();
         return;
       }
-      game.loopStats();
+      displayGameStats();
       break;
     case 1:
       if (game.isRunning()) {
         game.loop();
         displayGameData();
+        if (game.reloadDisplay) {
+          displayGameBasisInfo();
+          game.reloadDisplay = false;
+        }
       } else {
         currentScreen = 2;
       }
@@ -304,7 +308,11 @@ void displayGameData() {
   // rechts
   display.writeFillRect(posX3Right, 16, 38, 18, BLACK);
   display.setCursor((game.playerHealth < 10) ? posX1Right : ((game.playerHealth < 100) ? posX2Right : posX3Right), 16);
-  display.println(game.playerHealth);
+  if (game.playerAlive) {
+    display.println(game.playerHealth);
+  } else {
+    display.println("X");
+  }
   
   display.display();
   
@@ -357,3 +365,35 @@ void displayGameBasisInfo() {
   displayGameData();
 }
 
+void displayGameStats() {
+  display.clearDisplay();
+  
+  String text = "Game-Stats";
+  char textBuf[50];
+  text.toCharArray(textBuf, 50);
+  display.setCursor(0, 0);
+  display.println(textBuf);
+  display.writeFastHLine(0, 14, 128, WHITE);
+
+  text = "Shots: ";
+  text += game.statsShots;
+  text.toCharArray(textBuf, 50);
+  display.setCursor(0, 17);
+  display.println(textBuf);
+
+  text = "Death: ";
+  text += game.statsDeath;
+  text.toCharArray(textBuf, 50);
+  display.setCursor(0, 31);
+  display.println(textBuf);
+  
+  text = "Press [Enter] to restart";
+  text.toCharArray(textBuf, 50);
+  display.setCursor(0, 49);
+  display.println(textBuf);
+  display.writeFastHLine(0, 48, 128, WHITE);
+
+  display.display();
+  
+  delay(100);
+}

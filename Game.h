@@ -27,6 +27,9 @@
       void end();
       bool isRunning();
       void loop();
+      void shot();
+      void reload();
+      void respawn();
       
       void calculateTime();
       void displayTime();
@@ -38,10 +41,12 @@
       void updateSensorConfig();
       void initButtons(int rP, int lP, int dP, int uP, int sP, int iP, int rlP, int fP, int eP, int rsP);
       void getButtonStates();
-      void loopStats();
 
       void receiveShot(byte *data, int byteCounter);
       void setDamage(int damage);
+
+      // Display
+      bool reloadDisplay = false;
     
       // Time
       unsigned long timeStart;
@@ -57,10 +62,20 @@
       unsigned int statsDeath;
       
       // Player
+      bool playerAlive;
       byte playerTeamId = 1;
       byte playerId = 1;
       int playerAmmo;
+      int playerAmmoMax;
       int playerHealth;
+      int playerHealthMax;
+      int timePlayerRespawn;
+      unsigned long timeNextRespawn;
+
+      // Tagger
+      int timeShotFrequence;
+      unsigned long timeNextShot;
+      int taggerDamage;
       
     private:
       // Basic
