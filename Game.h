@@ -24,7 +24,7 @@
   {
     // ToDo: Maybe access the most vars only over a getter?
     public:
-      Game(irSend& ir, Infinitag_Core& core, Adafruit_NeoPixel& ledStrip);
+      Game(IRsend& ir, Infinitag_Core& core, Adafruit_NeoPixel& ledStrip);
       
       void start();
       void end();
@@ -85,7 +85,7 @@
       Infinitag_Core infinitagCore;
       
       // IR
-      irSend irSend;
+      IRsend irSend;
       
       // LED
       unsigned int ledIntensity = 255;

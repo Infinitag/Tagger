@@ -13,7 +13,7 @@
 #include "Game.h"
 
 
-Game::Game(irSend& ir, Infinitag_Core& core, Adafruit_NeoPixel& ledStrip)
+Game::Game(IRsend& ir, Infinitag_Core& core, Adafruit_NeoPixel& ledStrip)
 {
   irSend = ir;
   infinitagCore = core;
@@ -84,7 +84,7 @@ void Game::shot() {
   }
   
   // IR signal
-  unsigned long shotValue = infinitagCore.ir_encode(false, 0, playerTeamId, playerId, 1, taggerDamage);
+  unsigned long shotValue = infinitagCore.irEncode(false, 0, playerTeamId, playerId, 1, taggerDamage);
   irSend.sendRC5(shotValue, 24);
 
   // Color
@@ -203,9 +203,9 @@ void Game::receiveShot(byte *data, int byteCounter) {
   switch (data[0]) {
     case 0x06:
       if (byteCounter == 4) {
-        infinitagCore.ir_decode(data);
-        if (infinitagCore.ir_recv_cmd == 1) {
-          setDamage(infinitagCore.ir_recv_cmd_value);
+        infinitagCore.irDecode(data);
+        if (infinitagCore.irRecvCmd == 1) {
+          setDamage(infinitagCore.irRecvCmdValue);
         }
       }
       break;
