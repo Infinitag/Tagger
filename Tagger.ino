@@ -1,5 +1,5 @@
 /*
-  Tagger.cpp - Tagger Library for the Infinitag System.
+  Tagger.ino - Tagger Library for the Infinitag System.
   Created by Jani Taxidis & Tobias Stewen & Florian Kleene.
   Info: www.infinitag.io
 
