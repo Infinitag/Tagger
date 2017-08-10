@@ -8,10 +8,12 @@
 */
 #include <Infinitag_Core.h>
 
-// Vendor
+// Basic Libs
+#include <Wire.h>
+
+// Vendor Libs
 #include <IRremote.h>
 #include <Adafruit_NeoPixel.h>
-#include <Wire.h>
 
 #ifndef Game_h
   #define Game_h
@@ -20,8 +22,9 @@
 
   class Game
   {
+    // ToDo: Maybe access the most vars only over a getter?
     public:
-      Game(IRsend& ir, Infinitag_Core& core, Adafruit_NeoPixel& ledStrip);
+      Game(irSend& ir, Infinitag_Core& core, Adafruit_NeoPixel& ledStrip);
       
       void start();
       void end();
@@ -82,7 +85,7 @@
       Infinitag_Core infinitagCore;
       
       // IR
-      IRsend irsend;
+      irSend irSend;
       
       // LED
       unsigned int ledIntensity = 255;

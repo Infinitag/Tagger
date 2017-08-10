@@ -13,9 +13,9 @@
 #include "Game.h"
 
 
-Game::Game(IRsend& ir, Infinitag_Core& core, Adafruit_NeoPixel& ledStrip)
+Game::Game(irSend& ir, Infinitag_Core& core, Adafruit_NeoPixel& ledStrip)
 {
-  irsend = ir;
+  irSend = ir;
   infinitagCore = core;
   strip = ledStrip;
   
@@ -85,7 +85,7 @@ void Game::shot() {
   
   // IR signal
   unsigned long shotValue = infinitagCore.ir_encode(false, 0, playerTeamId, playerId, 1, taggerDamage);
-  irsend.sendRC5(shotValue, 24);
+  irSend.sendRC5(shotValue, 24);
 
   // Color
   colorWipe(strip.Color(0, ledIntensity, 0, 0));
@@ -183,6 +183,8 @@ void Game::initButtons(int rP, int lP, int dP, int uP, int sP, int iP, int rlP, 
   resetBtnState = 0;
 }
 
+// ToDo: double function in Tagger.cpp and here... how to combine?!
+// maybe in the Core lib?
 void Game::getButtonStates() {
   rightBtnState = digitalRead(rightBtnPin);
   leftBtnState = digitalRead(leftBtnPin);
