@@ -153,10 +153,8 @@ void Game::demoFunktions() {
 }
 
 void Game::updateSensorConfig() {
-  Wire.beginTransmission(0x22);
-  Wire.write(playerTeamId);
-  Wire.write(playerId);
-  Wire.endTransmission();
+  infinitagCore.sendCmdSetTeamId(playerTeamId);
+  infinitagCore.sendCmdSetPlayerId(playerId);
   reloadDisplay = true;
 }
 

@@ -300,64 +300,6 @@ void displayGameStats() {
 }
 
 /*
- * Commands
- */
-void sendCmd(byte data[], unsigned int byteLength) {
-  // ToDo: correct destination
-  Wire.beginTransmission(0x22);
-  Wire.write(data, byteLength);
-  Wire.endTransmission();
-}
-
-void sendCmdSetGameId(unsigned int gameId) {
-  byte data[2] = {
-    0x01, 
-    gameId
-  };
-  sendCmd(data, 2);
-}
-
-void sendCmdSetPlayerId(unsigned int playerId) {
-  byte data[2] = {
-    0x02, 
-    playerId
-  };
-  sendCmd(data, 2);
-}
-
-void sendCmdSetSensorId(unsigned int sensorId) {
-  byte data[2] = {
-    0x03, 
-    sensorId
-  };
-  sendCmd(data, 2);
-}
-
-void sendCmdSetAnimation(unsigned int animationId, unsigned int duration, unsigned int colorR, unsigned int colorG, unsigned int colorB, unsigned int colorW, unsigned int repeat) {
-  byte data[9] = {
-    0x04, 
-    animationId, 
-    duration, 
-    duration >> 8, 
-    colorR, 
-    colorG, 
-    colorB, 
-    colorW, 
-    repeat
-  };
-  sendCmd(data, 9);
-}
-
-
-void sendCmdPing(unsigned int senderId) {
-  byte data[2] = {
-    0x05, 
-    senderId
-  };
-  sendCmd(data, 2);
-}
-
-/*
  * Helpers
  */
 void startGame() {
