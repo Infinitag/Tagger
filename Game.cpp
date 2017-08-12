@@ -99,7 +99,7 @@ void Game::shot() {
 }
 
 void Game::respawn() {
-  playerAlive = true;
+  setAlive(true);
   playerHealth = playerHealthMax;
 }
 
@@ -223,9 +223,14 @@ void Game::setDamage(int damage) {
 
   if (playerHealth <= 0) {
     playerHealth = 0;
-    playerAlive = false;
+    setAlive(false);
     timeNextRespawn = millis() + timePlayerRespawn;
     statsDeath++;
   }
+}
+
+void Game::setAlive(bool alive) {
+  playerAlive = alive;
+  infinitagCore.sendCmdPingSetAlive(alive);
 }
 

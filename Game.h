@@ -47,6 +47,7 @@
 
       void receiveShot(byte *data, int byteCounter);
       void setDamage(int damage);
+      void setAlive(bool alive);
 
       // Display
       bool reloadDisplay = false;
