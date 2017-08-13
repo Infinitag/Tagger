@@ -62,7 +62,7 @@ void Game::start() {
 
   // Tagger
   taggerDamage = 25;
-  timeShotFrequence = 20;
+  timeShotFrequence = 250;
   timeNextShot = millis();
 
   reload();
@@ -197,7 +197,6 @@ void Game::getButtonStates() {
 }
 
 void Game::receiveShot(byte *data, int byteCounter) {
-  Serial.println("receiveShot");
   switch (data[0]) {
     case 0x06:
       if (byteCounter == 4) {
@@ -206,10 +205,6 @@ void Game::receiveShot(byte *data, int byteCounter) {
           setDamage(infinitagCore.irRecvCmdValue);
         }
       }
-      break;
-      
-    default:
-      Serial.println("No Command found");
       break;
   }
 }

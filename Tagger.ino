@@ -24,7 +24,7 @@
 #include "Settings.h"
 
 // Infinitag Inits
-SensorDHCPServer SensorServer(DHCP_MASTER_ADDRESS, 30);
+//SensorDHCPServer SensorServer(DHCP_MASTER_ADDRESS, 30);
 Infinitag_Core infinitagCore;
 
 // Vendor Inits
@@ -38,29 +38,23 @@ Game game(irSend, infinitagCore, strip);
 void setup() {
   Serial.begin(57600);
   
-  Serial.println("booting DHCP-Server...");
-  SensorServer.initialize();
-  
-  Serial.println("booting Events...");
-  Wire.onRequest(requestEvent);
-  Wire.onReceive(receiveEvent);
+  //SensorServer.initialize();
 
-  Serial.println("booting Pins...");
+  Wire.begin();
+  //Wire.onReceive(receiveEvent);
+
   pinMode(fireBtnPin, INPUT);
   pinMode(muzzleLedPin, OUTPUT);
 
-  Serial.println("booting Display...");
   display.begin(SH1106_SWITCHCAPVCC);
   display.display();
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
   
-  Serial.println("booting LEDs...");
   strip.begin();
   colorWipe(strip.Color(0,0,0,0));
   
-  Serial.println("booting Game");
   game.initButtons(rightBtnPin, leftBtnPin, downBtnPin, upBtnPin, specialBtnPin, infoBtnPin, reloadBtnPin, fireBtnPin, enterBtnPin, resetBtnPin);
   game.updateSensorConfig();
 }
@@ -70,6 +64,7 @@ void setup() {
  */
 void loop() {
   getButtonStates();
+  pollSensors();
 
   switch(currentScreen) {
     case 2:
@@ -127,8 +122,9 @@ void loopHomescreen() {
 /*
  * Events
  */
-void receiveEvent() {
-  Serial.println("receiveEvent");
+void pollSensors() {
+  Serial.print("poll ");
+  Serial.println(millis());
   int byteCounter = 0;
   byte data[4] = {
     B0,
@@ -137,19 +133,20 @@ void receiveEvent() {
     B0,
   };
   
+  Wire.requestFrom(0x22, 4);
+
   while (Wire.available()) {
     data[byteCounter] = Wire.read();
-    Serial.println(data[byteCounter]);
     byteCounter++;
   }
-  
-  game.receiveShot(data, byteCounter);
-}
+  Serial.println(data[0]);
 
-void requestEvent() {
-  //maybe we have enough time to look for the next free address?
-  Serial.println("requested");
-  SensorServer.registerNewClient();
+  switch(data[0]) {
+    case 0x06:
+      Serial.println("drin");
+      game.receiveShot(data, byteCounter);
+      break;
+  }
 }
 
 /*
