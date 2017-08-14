@@ -96,6 +96,11 @@ void Game::shot() {
 
   // Stats
   statsShots++;
+
+  // Autoreload
+  if (playerAmmo <= 0 && autoReload) {
+    reload();
+  }
 }
 
 void Game::respawn() {

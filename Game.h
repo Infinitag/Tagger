@@ -80,6 +80,7 @@
       int timeShotFrequence;
       unsigned long timeNextShot;
       int taggerDamage;
+      bool autoReload = true;
       
     private:
       // Basic
