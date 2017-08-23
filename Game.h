@@ -11,6 +11,10 @@
 // Basic Libs
 #include <Wire.h>
 
+// Infinitag Libs
+#include <Infinitag_SH1106.h>
+#include <Infinitag_GFX.h>
+
 // Vendor Libs
 #include <IRremote.h>
 #include <Adafruit_NeoPixel.h>
@@ -24,19 +28,23 @@
   {
     // ToDo: Maybe access the most vars only over a getter?
     public:
-      Game(IRsend& ir, Infinitag_Core& core, Adafruit_NeoPixel& ledStrip);
+      Game(Framebuffer& fb, sh1106_spi& dp, IRsend& ir, Infinitag_Core& core, Adafruit_NeoPixel& ledStrip);
       
       void start();
       void end();
       bool isRunning();
       void loop();
+      void loopStats();
       void shot();
       void reload();
       void respawn();
       
       void calculateTime();
+      
       void displayTime();
+      void displayData();
       void displayBasisInfo();
+      void displayStats();
       
       void demoFunktions();
       
@@ -50,8 +58,9 @@
       void setAlive(bool alive);
 
       // Display
-      bool reloadDisplay = false;
-    
+      Framebuffer framebuffer;
+      sh1106_spi display;
+
       // Time
       unsigned long timeStart;
       unsigned long timeEnd;

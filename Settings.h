@@ -29,9 +29,9 @@ int resetBtnPin = 49;
 int resetBtnState = 0;
 
 // Display
-const int8_t displayResetPin = 4;
-const int8_t displayDcPin = 5;
-const int8_t displayCsPin = 6;
+const int displayResetPin = 4;
+const int displayDcPin = 5;
+const int displayCsPin = 6;
 unsigned int currentScreen = 0; // 0 = home / 1 = inGame / 2 = gameStats
 
 // Additional
