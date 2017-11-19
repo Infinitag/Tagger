@@ -155,7 +155,7 @@ void Game::demoFunktions() {
     updateSensorConfig();
     delay(100);
   }
-  if (resetBtnState == HIGH) {
+  if (backBtnState == HIGH) {
     setDamage(1000);
   }
 }
@@ -186,8 +186,8 @@ void Game::initButtons(int rP, int lP, int dP, int uP, int sP, int iP, int rlP, 
   fireBtnState = 0;
   enterBtnPin = eP;
   enterBtnState = 0;
-  resetBtnPin = rsP;
-  resetBtnState = 0;
+  backBtnPin = rsP;
+  backBtnState = 0;
 }
 
 // ToDo: double function in Tagger.cpp and here... how to combine?!
@@ -202,7 +202,7 @@ void Game::getButtonStates() {
   reloadBtnState = digitalRead(reloadBtnPin);
   fireBtnState = digitalRead(fireBtnPin);
   enterBtnState = digitalRead(enterBtnPin);
-  resetBtnState = digitalRead(resetBtnPin);
+  backBtnState = digitalRead(backBtnPin);
 }
 
 void Game::receiveShot(byte *data, int byteCounter) {

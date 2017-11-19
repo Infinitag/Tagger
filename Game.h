@@ -114,8 +114,8 @@
       int fireBtnState;
       int enterBtnPin;
       int enterBtnState;
-      int resetBtnPin;
-      int resetBtnState;
+      int backBtnPin;
+      int backBtnState;
   };
 
 #endif
