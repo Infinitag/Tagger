@@ -13,10 +13,10 @@
 // Infinitag Libs
 #include <sensor_dhcp_server.h>
 #include <Infinitag_Core.h>
-#include <Infinitag_SH1106.h>
-#include <Infinitag_GFX.h>
 
 // Vendor Libs
+#include <Adafruit_GFX.h>
+#include <Adafruit_SH1106.h>
 #include <Adafruit_NeoPixel.h>
 #include <IRremote.h>
 
@@ -26,15 +26,14 @@
 // Infinitag Inits
 //SensorDHCPServer SensorServer(DHCP_MASTER_ADDRESS, 30);
 Infinitag_Core infinitagCore;
-sh1106_spi display = create_display(displayResetPin, displayDcPin, displayCsPin);
-Framebuffer framebuffer;
 
 // Vendor Inits
+Adafruit_SH1106 display(51, 52, displayDcPin, displayResetPin, displayCsPin);
 IRsend irSend;
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(4, muzzleLedPin, NEO_GRBW + NEO_KHZ800);
 
 #include "Game.h"
-Game game(framebuffer, display, irSend, infinitagCore, strip);
+Game game(irSend, infinitagCore, strip);
 
 void setup() {
   Serial.begin(57600);
@@ -46,9 +45,12 @@ void setup() {
 
   pinMode(fireBtnPin, INPUT);
   pinMode(muzzleLedPin, OUTPUT);
-  
-  SPI.begin();
-  initialize_display(&display);
+
+  display.begin(SH1106_SWITCHCAPVCC);
+  display.display();
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
   
   strip.begin();
   colorWipe(strip.Color(0,0,0,0));
@@ -70,11 +72,16 @@ void loop() {
         startGame();
         return;
       }
-      game.loopStats();
+      displayGameStats();
       break;
     case 1:
       if (game.isRunning()) {
         game.loop();
+        displayGameData();
+        if (game.reloadDisplay) {
+          displayGameBasisInfo();
+          game.reloadDisplay = false;
+        }
       } else {
         currentScreen = 2;
       }
@@ -87,19 +94,22 @@ void loop() {
 }
 
 void loopHomescreen() {
-  framebuffer.clear(BLACK);
+  display.clearDisplay();
+  display.setTextSize(1);
   
   String text = "Homescreen";
   char textBuf[50];
   text.toCharArray(textBuf, 50);
-  framebuffer.displayText(textBuf, 0, 0, WHITE);
-  framebuffer.drawHorizontalLine(0, 14, 128, WHITE);
+  display.setCursor(0, 0);
+  display.println(textBuf);
+  display.writeFastHLine(0, 14, 128, WHITE);
   
   text = "Press [Enter] to play";
   text.toCharArray(textBuf, 50);
-  framebuffer.displayText(textBuf, 0, 30, WHITE);
+  display.setCursor(0, 30);
+  display.println(textBuf);
 
-  display_buffer(&display, framebuffer.getData());
+  display.display();
   
   if (enterBtnState == HIGH) {
     startGame();
@@ -113,8 +123,6 @@ void loopHomescreen() {
  * Events
  */
 void pollSensors() {
-  Serial.print("poll ");
-  Serial.println(millis());
   int byteCounter = 0;
   byte data[4] = {
     B0,
@@ -129,7 +137,6 @@ void pollSensors() {
     data[byteCounter] = Wire.read();
     byteCounter++;
   }
-  Serial.println(data[0]);
 
   switch(data[0]) {
     case 0x06:
@@ -140,10 +147,158 @@ void pollSensors() {
 }
 
 /*
+ * Display Game-Informations
+ * ToDo: At this poit no idea how to call the display
+ * fron this file and also from the Game lib
+ */
+void displayGameTime() {
+  display.setTextSize(1);
+  
+  // Bar
+  int barMaxWidth = 94;
+  
+  display.writeFastHLine(0, 60, barMaxWidth, WHITE);
+  display.writeLine(barMaxWidth, 60, barMaxWidth, 64, WHITE);
+
+  display.writeFillRect(0, 61, barMaxWidth, 4, BLACK);
+  int barSize = barMaxWidth - (game.timeDiff * barMaxWidth / game.timePlayTime);
+  if (barSize < 0) {
+    barSize = 0;
+  }
+  display.writeFillRect(0, 61, barSize, 4, WHITE);
+
+  // Time
+  display.writeFillRect(97, 52, 31, 12, BLACK);
+  String timeText = "";
+  if (game.timeDiffMinutes < 10) {
+    timeText += "0";
+  }
+  timeText += game.timeDiffMinutes;
+  timeText += ":";
+  if (game.timeDiffSeconds < 10) {
+    timeText += "0";
+  }
+  timeText += game.timeDiffSeconds;
+  char timeBuf[6];
+  timeText.toCharArray(timeBuf, 6);
+  display.setCursor(97, 57);
+  display.println(timeBuf);
+
+  display.display();
+}
+
+void displayGameData() {
+  display.setTextSize(2);
+  int posX3Left = 19;
+  int posX3Right = 73;
+  int posX2Left = 26;
+  int posX2Right = 79;
+  int posX1Left = 32;
+  int posX1Right = 85;
+
+  // Ammo
+  display.writeFillRect(posX3Left, 16, 38, 18, BLACK);
+  display.setCursor((game.playerAmmo < 10) ? posX1Left : ((game.playerAmmo < 100) ? posX2Left : posX3Left), 16);
+  display.println(game.playerAmmo);
+
+  // Health
+  display.writeFillRect(posX3Right, 16, 38, 18, BLACK);
+  display.setCursor((game.playerHealth < 10) ? posX1Right : ((game.playerHealth < 100) ? posX2Right : posX3Right), 16);
+  if (game.playerAlive) {
+    display.println(game.playerHealth);
+  } else {
+    display.println("X");
+  }
+  
+  display.display();
+  
+  displayGameTime();
+}
+
+void displayGameBasisInfo() {
+  display.clearDisplay();
+  display.setTextSize(1);
+
+  // Infinitag smybol
+  display.writeLine(25, 2, 48, 2, WHITE);
+  display.writeLine(25, 49, 48, 49, WHITE);
+  display.writeLine(10, 24, 10, 27, WHITE);
+  display.writeLine(25, 2, 10, 24, WHITE);
+  display.writeLine(10, 27, 25, 49, WHITE);
+  display.writeLine(48, 2, 59, 19, WHITE);
+  
+  display.writeLine(48, 49, 78, 2, WHITE);
+  
+  display.writeLine(78, 2, 101, 2, WHITE);
+  display.writeLine(78, 49, 101, 49, WHITE);
+  display.writeLine(116, 24, 116, 27, WHITE);
+  display.writeLine(101, 2, 116, 24, WHITE);
+  display.writeLine(116, 27, 101, 49, WHITE);
+  display.writeLine(78, 49, 67, 32, WHITE);
+
+  // Player
+  String displayPlayerText = "P";
+  displayPlayerText += game.playerId;
+  char charPlayerBuf[10];
+  displayPlayerText.toCharArray(charPlayerBuf, 10);
+  display.setCursor(0, 0);
+  display.println(charPlayerBuf);
+
+  // Team
+  String displayTeamText = "T";
+  displayTeamText += game.playerTeamId;
+  char charTeamBuf[10];
+  displayTeamText.toCharArray(charTeamBuf, 10);
+  display.setCursor(112, 0);
+  display.println(charTeamBuf);
+
+  display.display();
+
+  displayGameData();
+}
+
+/*
+ * Game Stats
+ */
+void displayGameStats() {
+  display.clearDisplay();
+  
+  String text = "Game-Stats";
+  char textBuf[50];
+  text.toCharArray(textBuf, 50);
+  display.setCursor(0, 0);
+  display.println(textBuf);
+  display.writeFastHLine(0, 14, 128, WHITE);
+
+  text = "Shots: ";
+  text += game.statsShots;
+  text.toCharArray(textBuf, 50);
+  display.setCursor(0, 17);
+  display.println(textBuf);
+
+  text = "Death: ";
+  text += game.statsDeath;
+  text.toCharArray(textBuf, 50);
+  display.setCursor(0, 31);
+  display.println(textBuf);
+  
+  text = "Press [Enter] to restart";
+  text.toCharArray(textBuf, 50);
+  display.setCursor(0, 49);
+  display.println(textBuf);
+  display.writeFastHLine(0, 48, 128, WHITE);
+
+  display.display();
+  
+  delay(100);
+}
+
+/*
  * Helpers
  */
 void startGame() {
   game.start();
+  displayGameBasisInfo();
   currentScreen = 1;
 }
 
