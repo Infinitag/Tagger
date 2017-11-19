@@ -2,11 +2,11 @@
 
 
 ## Tagger
-This repository contains the source code for **Tagger**, the Main library with the Tagger logic from the **Infinitag System**.
+This repository contains the source code for **Tagger**, the Main library with the Tagger logic from the **INFINITAG System**.
 
 ## License
 All files are published under Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
 License: https://creativecommons.org/licenses/by-nc-sa/4.0/
 
 ## Additional
-For more information about the Infinitag System please visit [infinitag.io](http://www.infinitag.io).
+For more information about the INFINITAG System please visit [infinitag.io](http://www.infinitag.io).
