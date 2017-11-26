@@ -12,9 +12,10 @@
 // Infinitag
 #include "Game.h"
 
-
-Game::Game(IRsend& ir, Infinitag_Core& core, Adafruit_NeoPixel& ledStrip)
+Game::Game(Framebuffer& fb, sh1106_spi& dp, IRsend& ir, Infinitag_Core& core, Adafruit_NeoPixel& ledStrip)
 {
+  framebuffer = fb;
+  display = dp;
   irSend = ir;
   infinitagCore = core;
   strip = ledStrip;
@@ -48,6 +49,12 @@ void Game::loop() {
       respawn();
     }
   }
+  
+  displayData();
+}
+
+void Game::loopStats() {
+  displayStats();
 }
 
 void Game::start() {
@@ -68,6 +75,7 @@ void Game::start() {
   reload();
   respawn();
   calculateTime();
+  displayBasisInfo();
 }
 
 void Game::end() {
@@ -164,7 +172,7 @@ void Game::updateSensorConfig() {
   infinitagCore.sendCmdSetTeamId(playerTeamId);
   infinitagCore.sendCmdSetPlayerId(playerId);
   infinitagCore.sendCmdSetAnimation(1, 1000, teamColors[playerTeamId - 1][0], teamColors[playerTeamId - 1][1], teamColors[playerTeamId - 1][2], teamColors[playerTeamId - 1][3], 0);
-  reloadDisplay = true;
+  displayBasisInfo();
 }
 
 void Game::initButtons(int rP, int lP, int dP, int uP, int sP, int iP, int rlP, int fP, int eP, int rsP) {
@@ -236,11 +244,140 @@ void Game::setDamage(int damage) {
 void Game::setAlive(bool alive) {
   playerAlive = alive;
   infinitagCore.sendCmdPingSetAlive(alive);
-
-  if (alive) {
-    infinitagCore.sendCmdSetAnimation(1, 1000, teamColors[playerTeamId - 1][0], teamColors[playerTeamId - 1][1], teamColors[playerTeamId - 1][2], teamColors[playerTeamId - 1][3], 0);
-  } else {
-    infinitagCore.sendCmdSetAnimation(2, 1000, teamColors[playerTeamId - 1][0], teamColors[playerTeamId - 1][1], teamColors[playerTeamId - 1][2], teamColors[playerTeamId - 1][3], 0);
-  }
 }
 
+
+
+/*
+ * Display Game-Informations
+ */
+void Game::displayTime() {
+  // Bar
+  int barMaxWidth = 94;
+
+  framebuffer.drawHorizontalLine(0, 60, barMaxWidth, WHITE);
+  framebuffer.drawLine(barMaxWidth, 60, barMaxWidth, 64, WHITE);
+
+  framebuffer.drawRectFilled(0, 61, barMaxWidth, 4, BLACK);
+  int barSize = barMaxWidth - (timeDiff * barMaxWidth / timePlayTime);
+  if (barSize < 0) {
+    barSize = 0;
+  }
+  framebuffer.drawRectFilled(0, 61, barSize, 4, WHITE);
+
+  // Time
+  framebuffer.drawRectFilled(97, 52, 31, 12, BLACK);
+  String timeText = "";
+  if (timeDiffMinutes < 10) {
+    timeText += "0";
+  }
+  timeText += timeDiffMinutes;
+  timeText += ":";
+  if (timeDiffSeconds < 10) {
+    timeText += "0";
+  }
+  timeText += timeDiffSeconds;
+  char timeBuf[6];
+  timeText.toCharArray(timeBuf, 6);
+  framebuffer.displayText(timeBuf, 97, 52, WHITE);
+
+  display_buffer(&display, framebuffer.getData());
+}
+
+void Game::displayData() {
+  int posX3Left = 19;
+  int posX3Right = 73;
+  int posX2Left = 26;
+  int posX2Right = 79;
+  int posX1Left = 32;
+  int posX1Right = 85;
+
+  // Ammo
+  framebuffer.drawRectFilled(posX3Left, 16, 38, 18, BLACK);
+  framebuffer.displayText(playerAmmo, (playerAmmo < 10) ? posX1Left : ((playerAmmo < 100) ? posX2Left : posX3Left), 16, WHITE);
+
+  // Health
+  framebuffer.drawRectFilled(posX3Right, 16, 38, 18, BLACK);
+  if (playerAlive) {
+    infinitagCore.sendCmdSetAnimation(1, 1000, teamColors[playerTeamId - 1][0], teamColors[playerTeamId - 1][1], teamColors[playerTeamId - 1][2], teamColors[playerTeamId - 1][3], 0);
+    framebuffer.displayText(playerHealth, (playerHealth < 10) ? posX1Right : ((playerHealth < 100) ? posX2Right : posX3Right), 16, WHITE);
+  } else {
+    infinitagCore.sendCmdSetAnimation(2, 1000, teamColors[playerTeamId - 1][0], teamColors[playerTeamId - 1][1], teamColors[playerTeamId - 1][2], teamColors[playerTeamId - 1][3], 0);
+    framebuffer.displayText("X", (playerHealth < 10) ? posX1Right : ((playerHealth < 100) ? posX2Right : posX3Right), 16, WHITE);
+  }
+  
+  display_buffer(&display, framebuffer.getData());
+  
+  displayTime();
+}
+
+void Game::displayBasisInfo() {
+  framebuffer.clear(BLACK);
+
+  // Infinitag smybol
+  framebuffer.drawLine(25, 2, 48, 2, WHITE);
+  framebuffer.drawLine(25, 49, 48, 49, WHITE);
+  framebuffer.drawLine(10, 24, 10, 27, WHITE);
+  framebuffer.drawLine(25, 2, 10, 24, WHITE);
+  framebuffer.drawLine(10, 27, 25, 49, WHITE);
+  framebuffer.drawLine(48, 2, 59, 19, WHITE);
+  
+  framebuffer.drawLine(48, 49, 78, 2, WHITE);
+  
+  framebuffer.drawLine(78, 2, 101, 2, WHITE);
+  framebuffer.drawLine(78, 49, 101, 49, WHITE);
+  framebuffer.drawLine(116, 24, 116, 27, WHITE);
+  framebuffer.drawLine(101, 2, 116, 24, WHITE);
+  framebuffer.drawLine(116, 27, 101, 49, WHITE);
+  framebuffer.drawLine(78, 49, 67, 32, WHITE);
+
+  // Player
+  String displayPlayerText = "P";
+  displayPlayerText += playerId;
+  char charPlayerBuf[10];
+  displayPlayerText.toCharArray(charPlayerBuf, 10);
+  framebuffer.displayText(charPlayerBuf, 0, 0, WHITE);
+
+  // Team
+  String displayTeamText = "T";
+  displayTeamText += playerTeamId;
+  char charTeamBuf[10];
+  displayTeamText.toCharArray(charTeamBuf, 10);
+  framebuffer.displayText(charTeamBuf, 112, 0, WHITE);
+
+  display_buffer(&display, framebuffer.getData());
+
+  displayData();
+}
+
+/*
+ * Game Stats
+ */
+void Game::displayStats() {
+  framebuffer.clear(BLACK);
+  
+  String text = "Game-Stats";
+  char textBuf[50];
+  text.toCharArray(textBuf, 50);
+  framebuffer.displayText(textBuf, 0, 0, WHITE);
+  framebuffer.drawHorizontalLine(0, 14, 128, WHITE);
+
+  text = "Shots: ";
+  text += statsShots;
+  text.toCharArray(textBuf, 50);
+  framebuffer.displayText(textBuf, 0, 17, WHITE);
+
+  text = "Death: ";
+  text += statsDeath;
+  text.toCharArray(textBuf, 50);
+  framebuffer.displayText(textBuf, 0, 31, WHITE);
+  
+  text = "Press [Enter] to restart";
+  text.toCharArray(textBuf, 50);
+  framebuffer.displayText(textBuf, 0, 49, WHITE);
+  framebuffer.drawHorizontalLine(0, 48, 128, WHITE);
+
+  display_buffer(&display, framebuffer.getData());
+  
+  delay(100);
+}
