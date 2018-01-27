@@ -285,25 +285,29 @@ void Game::displayTime() {
 }
 
 void Game::displayData() {
-  int posX3Left = 19;
-  int posX3Right = 73;
-  int posX2Left = 26;
-  int posX2Right = 79;
-  int posX1Left = 32;
-  int posX1Right = 85;
+  int posX3Left = 26;
+  int posX3Right = 80;
+  int posX2Left = 30;
+  int posX2Right = 83;
+  int posX1Left = 34;
+  int posX1Right = 87;
 
-  // Ammo
-  framebuffer.drawRectFilled(posX3Left, 16, 38, 18, BLACK);
-  framebuffer.displayText(playerAmmo, (playerAmmo < 10) ? posX1Left : ((playerAmmo < 100) ? posX2Left : posX3Left), 16, WHITE);
+  // Ammo  
+  char playerAmmoBuffer[4];
+  sprintf (playerAmmoBuffer, "%i", playerAmmo);
+  framebuffer.drawRectFilled(posX3Left, 18, 30, 18, BLACK);
+  framebuffer.displayText(playerAmmoBuffer, (playerAmmo < 10) ? posX1Left : ((playerAmmo < 100) ? posX2Left : posX3Left), 18, WHITE);
 
   // Health
-  framebuffer.drawRectFilled(posX3Right, 16, 38, 18, BLACK);
+  char playerHealthBuffer[4];
+  sprintf (playerHealthBuffer, "%i", playerHealth);
+  framebuffer.drawRectFilled(posX3Right, 18, 30, 18, BLACK);
   if (playerAlive) {
     infinitagCore.sendCmdSetAnimation(1, 1000, teamColors[playerTeamId - 1][0], teamColors[playerTeamId - 1][1], teamColors[playerTeamId - 1][2], teamColors[playerTeamId - 1][3], 0);
-    framebuffer.displayText(playerHealth, (playerHealth < 10) ? posX1Right : ((playerHealth < 100) ? posX2Right : posX3Right), 16, WHITE);
+    framebuffer.displayText(playerHealthBuffer, (playerHealth < 10) ? posX1Right : ((playerHealth < 100) ? posX2Right : posX3Right), 18, WHITE);
   } else {
     infinitagCore.sendCmdSetAnimation(2, 1000, teamColors[playerTeamId - 1][0], teamColors[playerTeamId - 1][1], teamColors[playerTeamId - 1][2], teamColors[playerTeamId - 1][3], 0);
-    framebuffer.displayText("X", (playerHealth < 10) ? posX1Right : ((playerHealth < 100) ? posX2Right : posX3Right), 16, WHITE);
+    framebuffer.displayText("X", posX1Right, 18, WHITE);
   }
   
   display_buffer(&display, framebuffer.getData());
