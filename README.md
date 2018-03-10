@@ -6,7 +6,7 @@ This repository contains the source code for **Tagger**, the Main library with t
 
 ## Sounds
 - Shot [0100.wav](https://freesound.org/people/tutarap/sounds/366007/)
-- Kill [0200.wav](https://freesound.org/people/kagateni/sounds/404359/)
+- Scoring a hit [0200.wav](https://freesound.org/people/kagateni/sounds/404359/)
 - No Ammo [0300.mp3](https://freesound.org/people/Jacco18/sounds/419023/)
 - Reload [0400.wav](https://freesound.org/people/GameAudio/sounds/220173/)
 - Waiting [0500.wav](https://freesound.org/people/blockh34d/sounds/386550/)
