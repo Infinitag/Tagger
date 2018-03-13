@@ -9,6 +9,17 @@
 
 #include "Arduino.h"
 
+// Vendor Libs
+#include <Wtv020sd16p.h>
+
+// Vendor Inits
+// Should be initialized in the main file and then passed to the game class
+int soundBusyPin = 38;
+int soundDataPin = 39;
+int soundResetPin = 40;
+int soundClockPin = 41;
+Wtv020sd16p wtv020sd16p(soundResetPin,soundClockPin,soundDataPin,soundBusyPin);
+
 // Infinitag
 #include "Game.h"
 
@@ -58,6 +69,9 @@ void Game::loopStats() {
 }
 
 void Game::start() {
+  wtv020sd16p.reset(); // Reset should go into the init function - but does not work yet
+  delay(500); // Without there are currently problems?!
+  
   timeStart = millis();
   timeEnd = timeStart + timePlayTime;
   
@@ -95,6 +109,9 @@ void Game::shot() {
   unsigned long shotValue = infinitagCore.irEncode(false, 0, playerTeamId, playerId, 1, taggerDamage);
   irSend.sendRC5(shotValue, 24);
 
+  // Sound
+  wtv020sd16p.asyncPlayVoice(100);
+
   // Color
   colorWipe(strip.Color(0, ledIntensity, 0, 0));
 
@@ -118,7 +135,7 @@ void Game::respawn() {
 
 void Game::reload() {
   playerAmmo = playerAmmoMax;
-  
+  wtv020sd16p.asyncPlayVoice(400);
 }
 
 bool Game::isRunning() {
