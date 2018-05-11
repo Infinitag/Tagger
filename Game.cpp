@@ -9,6 +9,16 @@
 
 #include "Arduino.h"
 
+// Vendor Libs
+#include <WTV020SD16P.h>
+
+// Vendor Inits
+// Should be initialized in the main file and then passed to the game class
+int soundBusyPin = 38;
+int soundDataPin = 39;
+int soundClockPin = 41;
+WTV020SD16P wtv020sd16p(soundClockPin,soundDataPin,soundBusyPin);
+
 // Infinitag
 #include "Game.h"
 
@@ -25,9 +35,8 @@ Game::Game(Framebuffer& fb, sh1106_spi& dp, IRsend& ir, Infinitag_Core& core, Ad
 
 void Game::loop() {
   getButtonStates();
-  
+
   if (timeToEnd <= 0) {
-    end();
     return;
   }
   
@@ -79,6 +88,8 @@ void Game::start() {
 }
 
 void Game::end() {
+  // Sound
+  wtv020sd16p.asyncPlayVoice(600);
 }
 
 
@@ -94,6 +105,9 @@ void Game::shot() {
   // IR signal
   unsigned long shotValue = infinitagCore.irEncode(false, 0, playerTeamId, playerId, 1, taggerDamage);
   irSend.sendRC5(shotValue, 24);
+
+  // Sound
+  wtv020sd16p.asyncPlayVoice(100);
 
   // Color
   colorWipe(strip.Color(0, ledIntensity, 0, 0));
@@ -118,7 +132,7 @@ void Game::respawn() {
 
 void Game::reload() {
   playerAmmo = playerAmmoMax;
-  
+  wtv020sd16p.asyncPlayVoice(400);
 }
 
 bool Game::isRunning() {

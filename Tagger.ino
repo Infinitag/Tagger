@@ -76,6 +76,7 @@ void loop() {
       if (game.isRunning()) {
         game.loop();
       } else {
+        game.end();
         currentScreen = 2;
       }
       break;
