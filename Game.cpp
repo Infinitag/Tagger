@@ -252,6 +252,9 @@ void Game::setDamage(int damage) {
     setAlive(false);
     timeNextRespawn = millis() + timePlayerRespawn;
     statsDeath++;
+    wtv020sd16p.asyncPlayVoice(899);
+  } else {
+    wtv020sd16p.asyncPlayVoice(random(800, 804));
   }
 }
 
