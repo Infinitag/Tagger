@@ -254,7 +254,7 @@ void Game::setDamage(int damage) {
     statsDeath++;
     wtv020sd16p.asyncPlayVoice(899);
   } else {
-    wtv020sd16p.asyncPlayVoice(random(800, 804));
+    wtv020sd16p.asyncPlayVoice(random(800, 803));
   }
 }
 
