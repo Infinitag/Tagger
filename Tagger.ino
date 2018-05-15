@@ -36,8 +36,12 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(4, muzzleLedPin, NEO_GRBW + NEO_KHZ8
 #include "Game.h"
 Game game(framebuffer, display, irSend, infinitagCore, strip);
 
+int serialCounter = 0;
+unsigned long serialMsg = 0;
+
 void setup() {
-  Serial.begin(57600);
+  Serial.begin(115200);
+  Serial1.begin(115200);
   
   //SensorServer.initialize();
 
@@ -63,6 +67,21 @@ void setup() {
 void loop() {
   getButtonStates();
   pollSensors();
+
+  if (Serial1.available()) {
+    if (serialCounter == 0) {
+      serialMsg = 0;
+    }
+    byte test = Serial1.read();
+    serialMsg = (serialMsg << 8) | test;
+    serialCounter++;
+    
+    if (serialCounter >= 4) {
+      String newMsg = String(serialMsg);
+      Serial.println(newMsg.c_str());
+      serialCounter = 0;
+    }
+  }
 
   switch(currentScreen) {
     case 2:
@@ -114,8 +133,6 @@ void loopHomescreen() {
  * Events
  */
 void pollSensors() {
-  Serial.print("poll ");
-  Serial.println(millis());
   int byteCounter = 0;
   byte data[4] = {
     B0,
@@ -130,11 +147,9 @@ void pollSensors() {
     data[byteCounter] = Wire.read();
     byteCounter++;
   }
-  Serial.println(data[0]);
 
   switch(data[0]) {
     case 0x06:
-      Serial.println("drin");
       game.receiveShot(data, byteCounter);
       break;
   }

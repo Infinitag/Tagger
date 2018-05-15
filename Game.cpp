@@ -67,6 +67,7 @@ void Game::loopStats() {
 }
 
 void Game::start() {
+  // Main
   timeStart = millis();
   timeEnd = timeStart + timePlayTime;
   
@@ -179,6 +180,23 @@ void Game::demoFunktions() {
   }
   if (backBtnState == HIGH) {
     setDamage(1000);
+  }
+  if (downBtnState == HIGH) {
+    // Wifi
+    Serial.println("Game start");
+    unsigned long msg = infinitagCore.wifiEncode(true, 0, playerTeamId, playerId, 0, 0);
+    byte buf[4];
+    buf[3] = msg & 255;
+    buf[2] = (msg >> 8)  & 255;
+    buf[1] = (msg >> 16) & 255;
+    buf[0] = (msg >> 24) & 255;
+
+    Serial1.write(buf, sizeof(buf));
+    //Serial1.write(msg);
+    Serial.println(msg);
+    Serial.println(msg, BIN);
+    Serial.println("Game start send");
+    delay(1000);
   }
 }
 
