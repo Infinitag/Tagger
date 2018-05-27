@@ -32,7 +32,6 @@ int resetBtnState = 0;
 const int8_t displayResetPin = 4;
 const int8_t displayDcPin = 5;
 const int8_t displayCsPin = 6;
-unsigned int currentScreen = 0; // 0 = home / 1 = inGame / 2 = gameStats
 
 // Additional
 const int muzzleLedPin = 8;

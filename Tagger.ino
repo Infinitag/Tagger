@@ -67,26 +67,12 @@ void setup() {
 void loop() {
   getButtonStates();
   pollSensors();
+  pollSerial();
 
-  if (Serial1.available()) {
-    if (serialCounter == 0) {
-      serialMsg = 0;
-    }
-    byte test = Serial1.read();
-    serialMsg = (serialMsg << 8) | test;
-    serialCounter++;
-    
-    if (serialCounter >= 4) {
-      String newMsg = String(serialMsg);
-      Serial.println(newMsg.c_str());
-      serialCounter = 0;
-    }
-  }
-
-  switch(currentScreen) {
+  switch(game.currentScreen) {
     case 2:
       if (enterBtnState == HIGH) {
-        startGame();
+        game.start(true);
         return;
       }
       game.loopStats();
@@ -96,7 +82,7 @@ void loop() {
         game.loop();
       } else {
         game.end();
-        currentScreen = 2;
+        game.currentScreen = 2;
       }
       break;
     case 0:
@@ -122,7 +108,7 @@ void loopHomescreen() {
   display_buffer(&display, framebuffer.getData());
   
   if (enterBtnState == HIGH) {
-    startGame();
+    game.start(true);
     return;
   }
   
@@ -132,6 +118,22 @@ void loopHomescreen() {
 /*
  * Events
  */
+void pollSerial() {
+  if (Serial1.available()) {
+    if (serialCounter == 0) {
+      serialMsg = 0;
+    }
+    byte test = Serial1.read();
+    serialMsg = (serialMsg << 8) | test;
+    serialCounter++;
+    
+    if (serialCounter >= 4) {
+      game.receiveWifiCmd(serialMsg);
+      serialCounter = 0;
+    }
+  }
+}
+
 void pollSensors() {
   int byteCounter = 0;
   byte data[4] = {
@@ -158,10 +160,6 @@ void pollSensors() {
 /*
  * Helpers
  */
-void startGame() {
-  game.start();
-  currentScreen = 1;
-}
 
 void colorWipe(uint32_t c) {
   for (uint16_t i=0; i<strip.numPixels(); i++) {
