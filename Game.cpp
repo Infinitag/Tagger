@@ -335,9 +335,9 @@ void Game::setDamage(int damage) {
     timeNextRespawn = millis() + timePlayerRespawn;
     statsDeath++;
     wtv020sd16p.asyncPlayVoice(899);
+    sendWifiCmd(infinitagCore.wifiEncode(true, gameId, infinitagCore.irRecvTeamId, infinitagCore.irRecvPlayerId, 2, 1));
   } else {
     wtv020sd16p.asyncPlayVoice(random(800, 803));
-    sendWifiCmd(infinitagCore.wifiEncode(true, gameId, infinitagCore.irRecvTeamId, infinitagCore.irRecvPlayerId, 2, 1));
   }
 }
 
