@@ -36,8 +36,12 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(4, muzzleLedPin, NEO_GRBW + NEO_KHZ8
 #include "Game.h"
 Game game(framebuffer, display, irSend, infinitagCore, strip);
 
+int serialCounter = 0;
+unsigned long serialMsg = 0;
+
 void setup() {
-  Serial.begin(57600);
+  Serial.begin(115200);
+  Serial1.begin(115200);
   
   //SensorServer.initialize();
 
@@ -63,11 +67,12 @@ void setup() {
 void loop() {
   getButtonStates();
   pollSensors();
+  pollSerial();
 
-  switch(currentScreen) {
+  switch(game.currentScreen) {
     case 2:
       if (enterBtnState == HIGH) {
-        startGame();
+        game.start(true);
         return;
       }
       game.loopStats();
@@ -77,7 +82,7 @@ void loop() {
         game.loop();
       } else {
         game.end();
-        currentScreen = 2;
+        game.currentScreen = 2;
       }
       break;
     case 0:
@@ -103,7 +108,7 @@ void loopHomescreen() {
   display_buffer(&display, framebuffer.getData());
   
   if (enterBtnState == HIGH) {
-    startGame();
+    game.start(true);
     return;
   }
   
@@ -113,9 +118,23 @@ void loopHomescreen() {
 /*
  * Events
  */
+void pollSerial() {
+  if (Serial1.available()) {
+    if (serialCounter == 0) {
+      serialMsg = 0;
+    }
+    byte test = Serial1.read();
+    serialMsg = (serialMsg << 8) | test;
+    serialCounter++;
+    
+    if (serialCounter >= 4) {
+      game.receiveWifiCmd(serialMsg);
+      serialCounter = 0;
+    }
+  }
+}
+
 void pollSensors() {
-  Serial.print("poll ");
-  Serial.println(millis());
   int byteCounter = 0;
   byte data[4] = {
     B0,
@@ -130,11 +149,9 @@ void pollSensors() {
     data[byteCounter] = Wire.read();
     byteCounter++;
   }
-  Serial.println(data[0]);
 
   switch(data[0]) {
     case 0x06:
-      Serial.println("drin");
       game.receiveShot(data, byteCounter);
       break;
   }
@@ -143,10 +160,6 @@ void pollSensors() {
 /*
  * Helpers
  */
-void startGame() {
-  game.start();
-  currentScreen = 1;
-}
 
 void colorWipe(uint32_t c) {
   for (uint16_t i=0; i<strip.numPixels(); i++) {
