@@ -15,6 +15,7 @@ This repository contains the source code for **Tagger**, the Main library with t
 - Hit 1 [0800.wav](https://freesound.org/people/Christopherderp/sounds/342229/)
 - Hit 2 [0801.wav](https://freesound.org/people/Christopherderp/sounds/342230/)
 - Hit 3 [0802.wav](https://freesound.org/people/Christopherderp/sounds/342231/)
+- Last Hit [0899.wav](https://freesound.org/people/ecfike/sounds/135796/)
 
 ## License
 All files are published under Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
