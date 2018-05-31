@@ -30,7 +30,8 @@ Game::Game(Framebuffer& fb, sh1106_spi& dp, IRsend& ir, Infinitag_Core& core, Ad
   infinitagCore = core;
   strip = ledStrip;
   
-  timePlayTime = 60000;//0;
+  timePlayTime = 30000;
+  timePlayerRespawn = 3000;
 }
 
 void Game::loop() {
@@ -66,25 +67,43 @@ void Game::loopStats() {
   displayStats();
 }
 
-void Game::start() {
+void Game::start(bool isServer) {
+  
+  // Wifi
+  if (isServer) {
+    Serial.println("Send Game Config");
+    // Game time
+    sendWifiCmd(infinitagCore.wifiEncode(true, gameId, playerTeamId, playerId, 3, (timePlayTime / 1000)));
+    // Respawn time
+    sendWifiCmd(infinitagCore.wifiEncode(true, gameId, playerTeamId, playerId, 4, (timePlayerRespawn / 1000)));
+    
+    Serial.println("Game start");
+    sendWifiCmd(infinitagCore.wifiEncode(true, gameId, 0, 0, 1, 1));
+  }
+  
+  // Main
   timeStart = millis();
   timeEnd = timeStart + timePlayTime;
   
   statsShots = 0;
   statsDeath = 0;
+  statsKills = 0;
+  
   playerAmmoMax = 30;
   playerHealthMax = 100;
-  timePlayerRespawn = 3000;
 
   // Tagger
-  taggerDamage = 25;
+  taggerDamage = 100;
   timeShotFrequence = 250;
   timeNextShot = millis();
 
+  currentScreen = 1;
+  
   reload();
   respawn();
   calculateTime();
   displayBasisInfo();
+  
 }
 
 void Game::end() {
@@ -123,6 +142,16 @@ void Game::shot() {
   if (playerAmmo <= 0 && autoReload) {
     reload();
   }
+}
+
+void Game::sendWifiCmd(unsigned long cmd) {
+    Serial.println("Send Wifi Cmd");
+    byte buf[4];
+    buf[3] = cmd & 255;
+    buf[2] = (cmd >> 8)  & 255;
+    buf[1] = (cmd >> 16) & 255;
+    buf[0] = (cmd >> 24) & 255;
+    Serial1.write(buf, sizeof(buf));
 }
 
 void Game::respawn() {
@@ -240,7 +269,60 @@ void Game::receiveShot(byte *data, int byteCounter) {
   }
 }
 
+void Game::receiveWifiCmd(unsigned long cmd) {
+  Serial.println("Game CMD");
+  Serial.println(cmd);
+
+  infinitagCore.wifiDecode(cmd);
+
+  // Check current game
+  if (infinitagCore.wifiRecvGameId == gameId) {
+
+    switch (infinitagCore.wifiRecvCmd) {
+      
+      // Game start
+      case 1:
+        if (infinitagCore.wifiRecvCmdValue == 1) {
+          Serial.println("Remote Game start");
+    
+          // Change player and team for demo 1vs1
+          playerId = 1;
+          playerTeamId = 2;
+          updateSensorConfig();
+    
+          // Start game without broadcast cmd
+          start(false);
+        }
+        break;
+
+      // Kill
+      case 2:
+        if (infinitagCore.wifiRecvCmdValue == 1) {
+          if (infinitagCore.wifiRecvTeamId == playerTeamId && infinitagCore.wifiRecvPlayerId == playerId) {
+            Serial.println("Kill ok");
+            statsKills++;
+          }
+        }
+        break;
+
+      // Game Time
+      case 3:
+        Serial.println("Set game time");
+        timePlayTime = infinitagCore.wifiRecvCmdValue * 1000;
+        break;
+
+      // Respawn Time
+      case 4:
+        Serial.println("Set respawn time");
+        timePlayerRespawn = infinitagCore.wifiRecvCmdValue * 1000;
+        break;
+        
+    }
+  }
+}
+
 void Game::setDamage(int damage) {
+  Serial.println("Damage");
   if (! playerAlive) {
     return;
   }
@@ -255,6 +337,7 @@ void Game::setDamage(int damage) {
     wtv020sd16p.asyncPlayVoice(899);
   } else {
     wtv020sd16p.asyncPlayVoice(random(800, 803));
+    sendWifiCmd(infinitagCore.wifiEncode(true, gameId, infinitagCore.irRecvTeamId, infinitagCore.irRecvPlayerId, 2, 1));
   }
 }
 
@@ -388,7 +471,9 @@ void Game::displayStats() {
   text.toCharArray(textBuf, 50);
   framebuffer.displayText(textBuf, 0, 17, WHITE);
 
-  text = "Death: ";
+  text = "K / D: ";
+  text += statsKills;
+  text += " / ";
   text += statsDeath;
   text.toCharArray(textBuf, 50);
   framebuffer.displayText(textBuf, 0, 31, WHITE);
@@ -399,6 +484,4 @@ void Game::displayStats() {
   framebuffer.drawHorizontalLine(0, 48, 128, WHITE);
 
   display_buffer(&display, framebuffer.getData());
-  
-  delay(100);
 }

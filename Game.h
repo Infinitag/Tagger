@@ -30,7 +30,7 @@
     public:
       Game(Framebuffer& fb, sh1106_spi& dp, IRsend& ir, Infinitag_Core& core, Adafruit_NeoPixel& ledStrip);
       
-      void start();
+      void start(bool isServer);
       void end();
       bool isRunning();
       void loop();
@@ -54,12 +54,18 @@
       void getButtonStates();
 
       void receiveShot(byte *data, int byteCounter);
+      void receiveWifiCmd(unsigned long cmd);
+      
       void setDamage(int damage);
       void setAlive(bool alive);
+
+      // Wifi
+      void sendWifiCmd(unsigned long cmd);
 
       // Display
       Framebuffer framebuffer;
       sh1106_spi display;
+      unsigned int currentScreen = 0; // 0 = home / 1 = inGame / 2 = gameStats
 
       // Time
       unsigned long timeStart;
@@ -73,6 +79,10 @@
       // Stats
       unsigned int statsShots;
       unsigned int statsDeath;
+      unsigned int statsKills;
+
+      // Game
+      int gameId = 1;
       
       // Player
       bool playerAlive;
