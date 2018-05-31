@@ -30,7 +30,8 @@ Game::Game(Framebuffer& fb, sh1106_spi& dp, IRsend& ir, Infinitag_Core& core, Ad
   infinitagCore = core;
   strip = ledStrip;
   
-  timePlayTime = 60000;//0;
+  timePlayTime = 30000;
+  timePlayerRespawn = 3000;
 }
 
 void Game::loop() {
@@ -70,8 +71,14 @@ void Game::start(bool isServer) {
   
   // Wifi
   if (isServer) {
+    Serial.println("Send Game Config");
+    // Game time
+    sendWifiCmd(infinitagCore.wifiEncode(true, gameId, playerTeamId, playerId, 3, (timePlayTime / 1000)));
+    // Respawn time
+    sendWifiCmd(infinitagCore.wifiEncode(true, gameId, playerTeamId, playerId, 4, (timePlayerRespawn / 1000)));
+    
     Serial.println("Game start");
-    sendWifiCmd(infinitagCore.wifiEncode(true, gameId, playerTeamId, playerId, 1, 1));
+    sendWifiCmd(infinitagCore.wifiEncode(true, gameId, 0, 0, 1, 1));
   }
   
   // Main
@@ -84,7 +91,6 @@ void Game::start(bool isServer) {
   
   playerAmmoMax = 30;
   playerHealthMax = 100;
-  timePlayerRespawn = 3000;
 
   // Tagger
   taggerDamage = 100;
@@ -268,50 +274,55 @@ void Game::receiveWifiCmd(unsigned long cmd) {
   Serial.println(cmd);
 
   infinitagCore.wifiDecode(cmd);
-  Serial.print("wifiRecvIsSystem: ");
-  Serial.println(infinitagCore.wifiRecvIsSystem);
-  Serial.print("wifiRecvGameId: ");
-  Serial.println(infinitagCore.wifiRecvGameId);
-  Serial.print("wifiRecvTeamId: ");
-  Serial.println(infinitagCore.wifiRecvTeamId);
-  Serial.print("wifiRecvPlayerId: ");
-  Serial.println(infinitagCore.wifiRecvPlayerId);
-  Serial.print("wifiRecvCmd: ");
-  Serial.println(infinitagCore.wifiRecvCmd);
-  Serial.print("wifiRecvCmdValue: ");
-  Serial.println(infinitagCore.wifiRecvCmdValue);
 
   // Check current game
   if (infinitagCore.wifiRecvGameId == gameId) {
 
-    // Game start
-    if (infinitagCore.wifiRecvCmd == 1 && infinitagCore.wifiRecvCmdValue == 1) {
+    switch (infinitagCore.wifiRecvCmd) {
+      
+      // Game start
+      case 1:
+        if (infinitagCore.wifiRecvCmdValue == 1) {
+          Serial.println("Remote Game start");
+    
+          // Change player and team for demo 1vs1
+          playerId = 1;
+          playerTeamId = 2;
+          updateSensorConfig();
+    
+          // Start game without broadcast cmd
+          start(false);
+        }
+        break;
 
-      // Change player and team for demo 1vs1
-      playerId = 1;
-      playerTeamId = 2;
-      updateSensorConfig();
+      // Kill
+      case 2:
+        if (infinitagCore.wifiRecvCmdValue == 1) {
+          if (infinitagCore.wifiRecvTeamId == playerTeamId && infinitagCore.wifiRecvPlayerId == playerId) {
+            Serial.println("Kill ok");
+            statsKills++;
+          }
+        }
+        break;
 
-      // Start game without broadcast cmd
-      start(false);
-    }
+      // Game Time
+      case 3:
+        Serial.println("Set game time");
+        timePlayTime = infinitagCore.wifiRecvCmdValue * 1000;
+        break;
 
-    // Kill
-    Serial.println("check Kill 1");
-    if (infinitagCore.wifiRecvCmd == 2 && infinitagCore.wifiRecvCmdValue == 1) {
-      Serial.println("check Kill 2");
-      // Check player
-      Serial.println("Team " + String(infinitagCore.wifiRecvTeamId) + " = " + String(playerTeamId));
-      Serial.println("Team " + String(infinitagCore.wifiRecvPlayerId) + " = " + String(playerId));
-      if (infinitagCore.wifiRecvTeamId == playerTeamId && infinitagCore.wifiRecvPlayerId == playerId) {
-        Serial.println("Kill ok");
-        statsKills++;
-      }
+      // Respawn Time
+      case 4:
+        Serial.println("Set respawn time");
+        timePlayerRespawn = infinitagCore.wifiRecvCmdValue * 1000;
+        break;
+        
     }
   }
 }
 
 void Game::setDamage(int damage) {
+  Serial.println("Damage");
   if (! playerAlive) {
     return;
   }
