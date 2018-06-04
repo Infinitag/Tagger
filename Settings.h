@@ -7,31 +7,32 @@
   License: https://creativecommons.org/licenses/by-nc-sa/4.0/
 */
 // Button Settings
-int rightBtnPin = 34;
+
+#define RIGHT_BTN_PIN 34
 int rightBtnState = 0;
-int leftBtnPin = 35;
+#define LEFT_BTN_PIN 35
 int leftBtnState = 0;
-int downBtnPin = 36;
+#define DOWN_BTN_PIN 36
 int downBtnState = 0;
-int upBtnPin = 37;
+#define UP_BTN_PIN 37
 int upBtnState = 0;
-int specialBtnPin = 44;
+#define SPECIAL_BTN_PIN 44
 int specialBtnState = 0;
-int infoBtnPin = 45;
+#define INFO_BTN_PIN 45
 int infoBtnState = 0;
-int reloadBtnPin = 46;
+#define RELOAD_BTN_PIN 46
 int reloadBtnState = 0;
-int fireBtnPin = 47;
+#define FIRE_BTN_PIN 47
 int fireBtnState = 0;
-int enterBtnPin = 48;
+#define ENTER_BTN_PIN 48
 int enterBtnState = 0;
-int resetBtnPin = 49;
+#define RESET_BTN_PIN 49
 int resetBtnState = 0;
 
 // Display
-const int8_t displayResetPin = 4;
-const int8_t displayDcPin = 5;
-const int8_t displayCsPin = 6;
+#define DISPLAY_RESET_PIN 4
+#define DISPLAY_DC_PIN 5
+#define DISPLAY_CS_PIN 5
 
 // Additional
-const int muzzleLedPin = 8;
+#define MUZZLE_LED_PIN 8

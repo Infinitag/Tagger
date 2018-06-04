@@ -26,12 +26,12 @@
 // Infinitag Inits
 //SensorDHCPServer SensorServer(DHCP_MASTER_ADDRESS, 30);
 Infinitag_Core infinitagCore;
-sh1106_spi display = create_display(displayResetPin, displayDcPin, displayCsPin);
+sh1106_spi display = create_display(DISPLAY_RESET_PIN, DISPLAY_DC_PIN, DISPLAY_CS_PIN);
 Framebuffer framebuffer;
 
 // Vendor Inits
 IRsend irSend;
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(4, muzzleLedPin, NEO_GRBW + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(4, MUZZLE_LED_PIN, NEO_GRBW + NEO_KHZ800);
 
 #include "Game.h"
 Game game(framebuffer, display, irSend, infinitagCore, strip);
@@ -48,8 +48,7 @@ void setup() {
   Wire.begin();
   //Wire.onReceive(receiveEvent);
 
-  pinMode(fireBtnPin, INPUT);
-  pinMode(muzzleLedPin, OUTPUT);
+  pinMode(FIRE_BTN_PIN, INPUT);
   
   SPI.begin();
   initialize_display(&display);
@@ -57,7 +56,7 @@ void setup() {
   strip.begin();
   colorWipe(strip.Color(0,0,0,0));
   
-  game.initButtons(rightBtnPin, leftBtnPin, downBtnPin, upBtnPin, specialBtnPin, infoBtnPin, reloadBtnPin, fireBtnPin, enterBtnPin, resetBtnPin);
+  game.initButtons(RIGHT_BTN_PIN, LEFT_BTN_PIN, DOWN_BTN_PIN, UP_BTN_PIN, SPECIAL_BTN_PIN, INFO_BTN_PIN, RELOAD_BTN_PIN, FIRE_BTN_PIN, ENTER_BTN_PIN, RESET_BTN_PIN);
   game.updateSensorConfig();
 }
 
@@ -169,14 +168,14 @@ void colorWipe(uint32_t c) {
 }
 
 void getButtonStates() {
-  rightBtnState = digitalRead(rightBtnPin);
-  leftBtnState = digitalRead(leftBtnPin);
-  downBtnState = digitalRead(downBtnPin);
-  upBtnState = digitalRead(upBtnPin);
-  specialBtnState = digitalRead(specialBtnPin);
-  infoBtnState = digitalRead(infoBtnPin);
-  reloadBtnState = digitalRead(reloadBtnPin);
-  fireBtnState = digitalRead(fireBtnPin);
-  enterBtnState = digitalRead(enterBtnPin);
-  resetBtnState = digitalRead(resetBtnPin);
+  rightBtnState = digitalRead(RIGHT_BTN_PIN);
+  leftBtnState = digitalRead(LEFT_BTN_PIN);
+  downBtnState = digitalRead(DOWN_BTN_PIN);
+  upBtnState = digitalRead(UP_BTN_PIN);
+  specialBtnState = digitalRead(SPECIAL_BTN_PIN);
+  infoBtnState = digitalRead(INFO_BTN_PIN);
+  reloadBtnState = digitalRead(RELOAD_BTN_PIN);
+  fireBtnState = digitalRead(FIRE_BTN_PIN);
+  enterBtnState = digitalRead(ENTER_BTN_PIN);
+  resetBtnState = digitalRead(RESET_BTN_PIN);
 }
