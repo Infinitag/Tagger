@@ -22,7 +22,7 @@
 // Display
 #define DISPLAY_RESET_PIN 4
 #define DISPLAY_DC_PIN 5
-#define DISPLAY_CS_PIN 5
+#define DISPLAY_CS_PIN 6
 
 // Additional
 #define MUZZLE_LED_PIN 8
