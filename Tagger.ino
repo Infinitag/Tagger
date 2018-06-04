@@ -22,6 +22,7 @@
 
 // Settings
 #include "Settings.h"
+#include "Input.h"
 
 // Infinitag Inits
 //SensorDHCPServer SensorServer(DHCP_MASTER_ADDRESS, 30);
@@ -56,7 +57,6 @@ void setup() {
   strip.begin();
   colorWipe(strip.Color(0,0,0,0));
   
-  game.initButtons(RIGHT_BTN_PIN, LEFT_BTN_PIN, DOWN_BTN_PIN, UP_BTN_PIN, SPECIAL_BTN_PIN, INFO_BTN_PIN, RELOAD_BTN_PIN, FIRE_BTN_PIN, ENTER_BTN_PIN, RESET_BTN_PIN);
   game.updateSensorConfig();
 }
 
@@ -64,13 +64,13 @@ void setup() {
  * Loops
  */
 void loop() {
-  getButtonStates();
   pollSensors();
   pollSerial();
+  theInput.Fetch();
 
   switch(game.currentScreen) {
     case 2:
-      if (enterBtnState == HIGH) {
+      if (theInput.GetEnterBtnState() == HIGH) {
         game.start(true);
         return;
       }
@@ -106,7 +106,7 @@ void loopHomescreen() {
 
   display_buffer(&display, framebuffer.getData());
   
-  if (enterBtnState == HIGH) {
+  if (theInput.GetEnterBtnState() == HIGH) {
     game.start(true);
     return;
   }
@@ -165,17 +165,4 @@ void colorWipe(uint32_t c) {
     strip.setPixelColor(i, c);
   }
   strip.show();
-}
-
-void getButtonStates() {
-  rightBtnState = digitalRead(RIGHT_BTN_PIN);
-  leftBtnState = digitalRead(LEFT_BTN_PIN);
-  downBtnState = digitalRead(DOWN_BTN_PIN);
-  upBtnState = digitalRead(UP_BTN_PIN);
-  specialBtnState = digitalRead(SPECIAL_BTN_PIN);
-  infoBtnState = digitalRead(INFO_BTN_PIN);
-  reloadBtnState = digitalRead(RELOAD_BTN_PIN);
-  fireBtnState = digitalRead(FIRE_BTN_PIN);
-  enterBtnState = digitalRead(ENTER_BTN_PIN);
-  resetBtnState = digitalRead(RESET_BTN_PIN);
 }

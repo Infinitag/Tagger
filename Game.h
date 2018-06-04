@@ -46,12 +46,10 @@
       void displayBasisInfo();
       void displayStats();
       
-      void demoFunktions();
+      void demoFunctions();
       
       void colorWipe(uint32_t c);
       void updateSensorConfig();
-      void initButtons(int rP, int lP, int dP, int uP, int sP, int iP, int rlP, int fP, int eP, int rsP);
-      void getButtonStates();
 
       void receiveShot(byte *data, int byteCounter);
       void receiveWifiCmd(unsigned long cmd);
@@ -112,29 +110,6 @@
       unsigned int ledIntensity = 255;
       Adafruit_NeoPixel strip;
       uint32_t teamColors[6][4] = {{255,0,0,0},{0,255,0,0},{0,0,255,0},{255,255,0,0},{0,255,255,0},{255,0,255,0}};
-
-      
-      // Button Settings
-      int rightBtnPin;
-      int rightBtnState;
-      int leftBtnPin;
-      int leftBtnState;
-      int downBtnPin;
-      int downBtnState;
-      int upBtnPin;
-      int upBtnState;
-      int specialBtnPin;
-      int specialBtnState;
-      int infoBtnPin;
-      int infoBtnState;
-      int reloadBtnPin;
-      int reloadBtnState;
-      int fireBtnPin;
-      int fireBtnState;
-      int enterBtnPin;
-      int enterBtnState;
-      int backBtnPin;
-      int backBtnState;
   };
 
 #endif

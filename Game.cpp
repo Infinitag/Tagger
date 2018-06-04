@@ -11,6 +11,7 @@
 
 // Vendor Libs
 #include <WTV020SD16P.h>
+#include "Input.h"
 
 // Vendor Inits
 // Should be initialized in the main file and then passed to the game class
@@ -35,7 +36,6 @@ Game::Game(Framebuffer& fb, sh1106_spi& dp, IRsend& ir, Infinitag_Core& core, Ad
 }
 
 void Game::loop() {
-  getButtonStates();
 
   if (timeToEnd <= 0) {
     return;
@@ -44,14 +44,14 @@ void Game::loop() {
   colorWipe(strip.Color(0, 0, ledIntensity, 0));
   
   calculateTime();
-  demoFunktions();
+  demoFunctions();
 
   if (playerAlive) {
-    if (fireBtnState == HIGH) {
+    if (theInput.GetFireBtnState() == HIGH) {
       shot();
     }
   
-    if (reloadBtnState == HIGH) {
+    if (theInput.GetReloadBtnState() == HIGH) {
       reload();
     }
   } else {
@@ -191,8 +191,8 @@ void Game::colorWipe(uint32_t c) {
   strip.show();
 }
 
-void Game::demoFunktions() {
-  if (upBtnState == HIGH) {
+void Game::demoFunctions() {
+  if (theInput.GetUpBtnState() == HIGH) {
     if (playerId == 1) {
       playerId = 2;
     } else {
@@ -206,7 +206,7 @@ void Game::demoFunktions() {
     updateSensorConfig();
     delay(100);
   }
-  if (backBtnState == HIGH) {
+  if (theInput.GetResetBtnState() == HIGH) {
     setDamage(1000);
   }
 }
@@ -216,44 +216,6 @@ void Game::updateSensorConfig() {
   infinitagCore.sendCmdSetPlayerId(playerId);
   infinitagCore.sendCmdSetAnimation(1, 1000, teamColors[playerTeamId - 1][0], teamColors[playerTeamId - 1][1], teamColors[playerTeamId - 1][2], teamColors[playerTeamId - 1][3], 0);
   displayBasisInfo();
-}
-
-void Game::initButtons(int rP, int lP, int dP, int uP, int sP, int iP, int rlP, int fP, int eP, int rsP) {
-  rightBtnPin = rP;
-  rightBtnState = 0;
-  leftBtnPin = lP;
-  leftBtnState = 0;
-  downBtnPin = dP;
-  downBtnState = 0;
-  upBtnPin = uP;
-  upBtnState = 0;
-  specialBtnPin = sP;
-  specialBtnState = 0;
-  infoBtnPin = iP;
-  infoBtnState = 0;
-  reloadBtnPin = rlP;
-  reloadBtnState = 0;
-  fireBtnPin = fP;
-  fireBtnState = 0;
-  enterBtnPin = eP;
-  enterBtnState = 0;
-  backBtnPin = rsP;
-  backBtnState = 0;
-}
-
-// ToDo: double function in Tagger.cpp and here... how to combine?!
-// maybe in the Core lib?
-void Game::getButtonStates() {
-  rightBtnState = digitalRead(rightBtnPin);
-  leftBtnState = digitalRead(leftBtnPin);
-  downBtnState = digitalRead(downBtnPin);
-  upBtnState = digitalRead(upBtnPin);
-  specialBtnState = digitalRead(specialBtnPin);
-  infoBtnState = digitalRead(infoBtnPin);
-  reloadBtnState = digitalRead(reloadBtnPin);
-  fireBtnState = digitalRead(fireBtnPin);
-  enterBtnState = digitalRead(enterBtnPin);
-  backBtnState = digitalRead(backBtnPin);
 }
 
 void Game::receiveShot(byte *data, int byteCounter) {
