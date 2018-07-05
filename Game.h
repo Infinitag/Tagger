@@ -28,7 +28,7 @@
   {
     // ToDo: Maybe access the most vars only over a getter?
     public:
-      Game(Framebuffer& fb, sh1106_spi& dp, IRsend& ir, Infinitag_Core& core, Adafruit_NeoPixel& ledStrip);
+      Game(IRsend& ir, Infinitag_Core& core, Adafruit_NeoPixel& ledStrip);
       
       void start(bool isServer);
       void end();
@@ -61,8 +61,6 @@
       void sendWifiCmd(unsigned long cmd);
 
       // Display
-      Framebuffer framebuffer;
-      sh1106_spi display;
       unsigned int currentScreen = 0; // 0 = home / 1 = inGame / 2 = gameStats
 
       // Time
