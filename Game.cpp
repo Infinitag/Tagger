@@ -23,10 +23,8 @@ WTV020SD16P wtv020sd16p(soundClockPin,soundDataPin,soundBusyPin);
 // Infinitag
 #include "Game.h"
 
-Game::Game(Framebuffer& fb, sh1106_spi& dp, IRsend& ir, Infinitag_Core& core, Adafruit_NeoPixel& ledStrip)
+Game::Game(IRsend& ir, Infinitag_Core& core, Adafruit_NeoPixel& ledStrip)
 {
-  framebuffer = fb;
-  display = dp;
   irSend = ir;
   infinitagCore = core;
   strip = ledStrip;
@@ -317,18 +315,18 @@ void Game::displayTime() {
   // Bar
   int barMaxWidth = 94;
 
-  framebuffer.drawHorizontalLine(0, 60, barMaxWidth, WHITE);
-  framebuffer.drawLine(barMaxWidth, 60, barMaxWidth, 64, WHITE);
+  theFramebuffer.DrawHorizontalLine(0, 60, barMaxWidth, INFINITAG_GFX_WHITE);
+  theFramebuffer.DrawLine(barMaxWidth, 60, barMaxWidth, 64, INFINITAG_GFX_WHITE);
 
-  framebuffer.drawRectFilled(0, 61, barMaxWidth, 4, BLACK);
+  theFramebuffer.DrawRectFilled(0, 61, barMaxWidth, 4, INFINITAG_GFX_BLACK);
   int barSize = barMaxWidth - (timeDiff * barMaxWidth / timePlayTime);
   if (barSize < 0) {
     barSize = 0;
   }
-  framebuffer.drawRectFilled(0, 61, barSize, 4, WHITE);
+  theFramebuffer.DrawRectFilled(0, 61, barSize, 4, INFINITAG_GFX_WHITE);
 
   // Time
-  framebuffer.drawRectFilled(97, 52, 31, 12, BLACK);
+  theFramebuffer.DrawRectFilled(97, 52, 31, 12, INFINITAG_GFX_BLACK);
   String timeText = "";
   if (timeDiffMinutes < 10) {
     timeText += "0";
@@ -341,9 +339,9 @@ void Game::displayTime() {
   timeText += timeDiffSeconds;
   char timeBuf[6];
   timeText.toCharArray(timeBuf, 6);
-  framebuffer.displayText(timeBuf, 97, 52, WHITE);
+  theFramebuffer.DisplayText(timeBuf, 97, 52, INFINITAG_GFX_WHITE);
 
-  display_buffer(&display, framebuffer.getData());
+  theDisplay.Display(theFramebuffer.GetData());
 }
 
 void Game::displayData() {
@@ -357,61 +355,61 @@ void Game::displayData() {
   // Ammo  
   char playerAmmoBuffer[4];
   sprintf (playerAmmoBuffer, "%i", playerAmmo);
-  framebuffer.drawRectFilled(posX3Left, 18, 30, 18, BLACK);
-  framebuffer.displayText(playerAmmoBuffer, (playerAmmo < 10) ? posX1Left : ((playerAmmo < 100) ? posX2Left : posX3Left), 18, WHITE);
+  theFramebuffer.DrawRectFilled(posX3Left, 18, 30, 18, INFINITAG_GFX_BLACK);
+  theFramebuffer.DisplayText(playerAmmoBuffer, (playerAmmo < 10) ? posX1Left : ((playerAmmo < 100) ? posX2Left : posX3Left), 18, INFINITAG_GFX_WHITE);
 
   // Health
   char playerHealthBuffer[4];
   sprintf (playerHealthBuffer, "%i", playerHealth);
-  framebuffer.drawRectFilled(posX3Right, 18, 30, 18, BLACK);
+  theFramebuffer.DrawRectFilled(posX3Right, 18, 30, 18, INFINITAG_GFX_BLACK);
   if (playerAlive) {
     infinitagCore.sendCmdSetAnimation(1, 1000, teamColors[playerTeamId - 1][0], teamColors[playerTeamId - 1][1], teamColors[playerTeamId - 1][2], teamColors[playerTeamId - 1][3], 0);
-    framebuffer.displayText(playerHealthBuffer, (playerHealth < 10) ? posX1Right : ((playerHealth < 100) ? posX2Right : posX3Right), 18, WHITE);
+    theFramebuffer.DisplayText(playerHealthBuffer, (playerHealth < 10) ? posX1Right : ((playerHealth < 100) ? posX2Right : posX3Right), 18, INFINITAG_GFX_WHITE);
   } else {
     infinitagCore.sendCmdSetAnimation(2, 1000, teamColors[playerTeamId - 1][0], teamColors[playerTeamId - 1][1], teamColors[playerTeamId - 1][2], teamColors[playerTeamId - 1][3], 0);
-    framebuffer.displayText("X", posX1Right, 18, WHITE);
+    theFramebuffer.DisplayText("X", posX1Right, 18, INFINITAG_GFX_WHITE);
   }
   
-  display_buffer(&display, framebuffer.getData());
+  theDisplay.Display(theFramebuffer.GetData());
   
   displayTime();
 }
 
 void Game::displayBasisInfo() {
-  framebuffer.clear(BLACK);
+  theFramebuffer.Clear(INFINITAG_GFX_BLACK);
 
   // Infinitag smybol
-  framebuffer.drawLine(25, 2, 48, 2, WHITE);
-  framebuffer.drawLine(25, 49, 48, 49, WHITE);
-  framebuffer.drawLine(10, 24, 10, 27, WHITE);
-  framebuffer.drawLine(25, 2, 10, 24, WHITE);
-  framebuffer.drawLine(10, 27, 25, 49, WHITE);
-  framebuffer.drawLine(48, 2, 59, 19, WHITE);
+  theFramebuffer.DrawLine(25, 2, 48, 2, INFINITAG_GFX_WHITE);
+  theFramebuffer.DrawLine(25, 49, 48, 49, INFINITAG_GFX_WHITE);
+  theFramebuffer.DrawLine(10, 24, 10, 27, INFINITAG_GFX_WHITE);
+  theFramebuffer.DrawLine(25, 2, 10, 24, INFINITAG_GFX_WHITE);
+  theFramebuffer.DrawLine(10, 27, 25, 49, INFINITAG_GFX_WHITE);
+  theFramebuffer.DrawLine(48, 2, 59, 19, INFINITAG_GFX_WHITE);
   
-  framebuffer.drawLine(48, 49, 78, 2, WHITE);
+  theFramebuffer.DrawLine(48, 49, 78, 2, INFINITAG_GFX_WHITE);
   
-  framebuffer.drawLine(78, 2, 101, 2, WHITE);
-  framebuffer.drawLine(78, 49, 101, 49, WHITE);
-  framebuffer.drawLine(116, 24, 116, 27, WHITE);
-  framebuffer.drawLine(101, 2, 116, 24, WHITE);
-  framebuffer.drawLine(116, 27, 101, 49, WHITE);
-  framebuffer.drawLine(78, 49, 67, 32, WHITE);
+  theFramebuffer.DrawLine(78, 2, 101, 2, INFINITAG_GFX_WHITE);
+  theFramebuffer.DrawLine(78, 49, 101, 49, INFINITAG_GFX_WHITE);
+  theFramebuffer.DrawLine(116, 24, 116, 27, INFINITAG_GFX_WHITE);
+  theFramebuffer.DrawLine(101, 2, 116, 24, INFINITAG_GFX_WHITE);
+  theFramebuffer.DrawLine(116, 27, 101, 49, INFINITAG_GFX_WHITE);
+  theFramebuffer.DrawLine(78, 49, 67, 32, INFINITAG_GFX_WHITE);
 
   // Player
   String displayPlayerText = "P";
   displayPlayerText += playerId;
   char charPlayerBuf[10];
   displayPlayerText.toCharArray(charPlayerBuf, 10);
-  framebuffer.displayText(charPlayerBuf, 0, 0, WHITE);
+  theFramebuffer.DisplayText(charPlayerBuf, 0, 0, INFINITAG_GFX_WHITE);
 
   // Team
   String displayTeamText = "T";
   displayTeamText += playerTeamId;
   char charTeamBuf[10];
   displayTeamText.toCharArray(charTeamBuf, 10);
-  framebuffer.displayText(charTeamBuf, 112, 0, WHITE);
+  theFramebuffer.DisplayText(charTeamBuf, 112, 0, INFINITAG_GFX_WHITE);
 
-  display_buffer(&display, framebuffer.getData());
+  theDisplay.Display(theFramebuffer.GetData());
 
   displayData();
 }
@@ -420,30 +418,30 @@ void Game::displayBasisInfo() {
  * Game Stats
  */
 void Game::displayStats() {
-  framebuffer.clear(BLACK);
+  theFramebuffer.Clear(INFINITAG_GFX_BLACK);
   
   String text = "Game-Stats";
   char textBuf[50];
   text.toCharArray(textBuf, 50);
-  framebuffer.displayText(textBuf, 0, 0, WHITE);
-  framebuffer.drawHorizontalLine(0, 14, 128, WHITE);
+  theFramebuffer.DisplayText(textBuf, 0, 0, INFINITAG_GFX_WHITE);
+  theFramebuffer.DrawHorizontalLine(0, 14, 128, INFINITAG_GFX_WHITE);
 
   text = "Shots: ";
   text += statsShots;
   text.toCharArray(textBuf, 50);
-  framebuffer.displayText(textBuf, 0, 17, WHITE);
+  theFramebuffer.DisplayText(textBuf, 0, 17, INFINITAG_GFX_WHITE);
 
   text = "K / D: ";
   text += statsKills;
   text += " / ";
   text += statsDeath;
   text.toCharArray(textBuf, 50);
-  framebuffer.displayText(textBuf, 0, 31, WHITE);
+  theFramebuffer.DisplayText(textBuf, 0, 31, INFINITAG_GFX_WHITE);
   
   text = "Press [Enter] to restart";
   text.toCharArray(textBuf, 50);
-  framebuffer.displayText(textBuf, 0, 49, WHITE);
-  framebuffer.drawHorizontalLine(0, 48, 128, WHITE);
+  theFramebuffer.DisplayText(textBuf, 0, 49, INFINITAG_GFX_WHITE);
+  theFramebuffer.DrawHorizontalLine(0, 48, 128, INFINITAG_GFX_WHITE);
 
-  display_buffer(&display, framebuffer.getData());
+  theDisplay.Display(theFramebuffer.GetData());
 }

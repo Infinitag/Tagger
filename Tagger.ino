@@ -27,15 +27,15 @@
 // Infinitag Inits
 //SensorDHCPServer SensorServer(DHCP_MASTER_ADDRESS, 30);
 Infinitag_Core infinitagCore;
-sh1106_spi display = create_display(DISPLAY_RESET_PIN, DISPLAY_DC_PIN, DISPLAY_CS_PIN);
-Framebuffer framebuffer;
+Infinitag_SH1106 theDisplay = Infinitag_SH1106(DISPLAY_RESET_PIN, DISPLAY_DC_PIN, DISPLAY_CS_PIN);
+Infinitag_Framebuffer theFramebuffer;
 
 // Vendor Inits
 IRsend irSend;
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(4, MUZZLE_LED_PIN, NEO_GRBW + NEO_KHZ800);
 
 #include "Game.h"
-Game game(framebuffer, display, irSend, infinitagCore, strip);
+Game game(irSend, infinitagCore, strip);
 
 int serialCounter = 0;
 unsigned long serialMsg = 0;
@@ -52,7 +52,7 @@ void setup() {
   pinMode(FIRE_BTN_PIN, INPUT);
   
   SPI.begin();
-  initialize_display(&display);
+  theDisplay.Init();
   
   strip.begin();
   colorWipe(strip.Color(0,0,0,0));
@@ -92,19 +92,19 @@ void loop() {
 }
 
 void loopHomescreen() {
-  framebuffer.clear(BLACK);
+  theFramebuffer.Clear(INFINITAG_GFX_BLACK);
   
   String text = "Homescreen";
   char textBuf[50];
   text.toCharArray(textBuf, 50);
-  framebuffer.displayText(textBuf, 0, 0, WHITE);
-  framebuffer.drawHorizontalLine(0, 14, 128, WHITE);
+  theFramebuffer.DisplayText(textBuf, 0, 0, INFINITAG_GFX_WHITE);
+  theFramebuffer.DrawHorizontalLine(0, 14, 128, INFINITAG_GFX_WHITE);
   
   text = "Press [Enter] to play";
   text.toCharArray(textBuf, 50);
-  framebuffer.displayText(textBuf, 0, 30, WHITE);
+  theFramebuffer.DisplayText(textBuf, 0, 30, INFINITAG_GFX_WHITE);
 
-  display_buffer(&display, framebuffer.getData());
+  theDisplay.Display(theFramebuffer.GetData());
   
   if (theInput.GetEnterBtnState() == HIGH) {
     game.start(true);
